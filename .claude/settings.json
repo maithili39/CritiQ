@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./venv/Scripts/python.exe -m pytest -v)",
+      "Read(//tmp/**)",
+      "Bash(tee pytest_full.log)"
+    ]
+  }
+}

@@ -1,0 +1,3 @@
+# Runs the backup daily at 02:00 container time. Edit the schedule to taste;
+# `docker compose restart backup` picks up changes to this file.
+0 2 * * * /app/scripts/backup.sh >> /var/log/backup.log 2>&1
