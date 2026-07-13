@@ -73,6 +73,36 @@ def test_list_sessions_only_returns_own(client, mock_ai):
 
     res = client.get("/api/sessions", headers=headers_a)
     assert res.status_code == 200
-    sessions = res.json()["sessions"]
-    assert [s["id"] for s in sessions] == [session_a]
-    assert sessions[0]["candidate_name"] == "Candidate A"
+    body = res.json()
+    assert [s["id"] for s in body["sessions"]] == [session_a]
+    assert body["sessions"][0]["candidate_name"] == "Candidate A"
+    assert body["total"] == 1
+
+
+def test_list_sessions_is_paginated(client, mock_ai):
+    headers = _register(client, "paginate@example.com")
+    for i in range(5):
+        make_session(client, headers, mock_ai, candidate_name=f"Candidate {i}")
+
+    res = client.get("/api/sessions?limit=2&offset=0", headers=headers)
+    assert res.status_code == 200
+    body = res.json()
+    assert len(body["sessions"]) == 2
+    assert body["total"] == 5
+    assert body["limit"] == 2
+    assert body["offset"] == 0
+
+    res2 = client.get("/api/sessions?limit=2&offset=2", headers=headers)
+    body2 = res2.json()
+    assert len(body2["sessions"]) == 2
+    # No overlap between pages.
+    assert {s["id"] for s in body["sessions"]}.isdisjoint({s["id"] for s in body2["sessions"]})
+
+
+def test_list_sessions_limit_is_clamped(client, mock_ai):
+    headers = _register(client, "clamp@example.com")
+    make_session(client, headers, mock_ai)
+
+    res = client.get("/api/sessions?limit=9999", headers=headers)
+    assert res.status_code == 200
+    assert res.json()["limit"] == 100  # clamped to the max, not passed through raw

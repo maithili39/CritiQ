@@ -19,15 +19,28 @@ function scoreColor(s: number) {
   return s >= 7 ? "#34d399" : s >= 5 ? "#fbbf24" : "#f87171";
 }
 
+const PAGE_SIZE = 20;
+
 export default function MySessionsPage() {
   const [sessions, setSessions] = useState<SessionListItem[] | null>(null);
+  const [total, setTotal] = useState(0);
   const [error, setError] = useState("");
+  const [loadingMore, setLoadingMore] = useState(false);
 
   useEffect(() => {
-    listSessions()
-      .then((res) => setSessions(res.sessions))
+    listSessions(PAGE_SIZE, 0)
+      .then((res) => { setSessions(res.sessions); setTotal(res.total); })
       .catch((err) => setError(err instanceof Error ? err.message : "Failed to load sessions."));
   }, []);
+
+  const loadMore = () => {
+    if (!sessions) return;
+    setLoadingMore(true);
+    listSessions(PAGE_SIZE, sessions.length)
+      .then((res) => setSessions([...sessions, ...res.sessions]))
+      .catch((err) => setError(err instanceof Error ? err.message : "Failed to load more sessions."))
+      .finally(() => setLoadingMore(false));
+  };
 
   return (
     <div className="page-stack">
@@ -84,6 +97,14 @@ export default function MySessionsPage() {
                   </Link>
                 );
               })}
+            </div>
+          ) : null}
+
+          {sessions && sessions.length > 0 && sessions.length < total ? (
+            <div className="flex justify-center mt-6">
+              <button onClick={loadMore} disabled={loadingMore} className="btn btn-secondary text-[14px] px-6 py-2.5">
+                {loadingMore ? "Loading..." : `Load more (${sessions.length} of ${total})`}
+              </button>
             </div>
           ) : null}
         </div>

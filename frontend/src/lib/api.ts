@@ -57,8 +57,10 @@ export async function getMe() {
   return request<{ id: string; email: string }>("/auth/me");
 }
 
-export async function listSessions() {
-  return request<{ sessions: SessionListItem[] }>("/sessions");
+export async function listSessions(limit = 20, offset = 0) {
+  return request<{ sessions: SessionListItem[]; total: number; limit: number; offset: number }>(
+    `/sessions?limit=${limit}&offset=${offset}`
+  );
 }
 
 export async function createSession(formData: FormData) {

@@ -14,6 +14,7 @@ Design choices:
 import os
 import re
 import logging
+from functools import lru_cache
 from pathlib import Path
 from typing import List, Dict
 
@@ -32,7 +33,9 @@ ROLE_COLLECTION_MAP = {
 }
 
 
+@lru_cache(maxsize=1)
 def _get_chroma_client() -> chromadb.PersistentClient:
+    """Cached: a fresh PersistentClient re-opens the sqlite connection every call."""
     os.makedirs(settings.CHROMA_PERSIST_DIR, exist_ok=True)
     return chromadb.PersistentClient(
         path=settings.CHROMA_PERSIST_DIR,
@@ -40,7 +43,13 @@ def _get_chroma_client() -> chromadb.PersistentClient:
     )
 
 
+@lru_cache(maxsize=1)
 def _get_embedding_model() -> SentenceTransformer:
+    """
+    Cached: without this, every single call re-loads ~90MB of model weights from
+    disk — this was happening on every question generated during an interview,
+    not just once at startup.
+    """
     return SentenceTransformer(settings.EMBEDDING_MODEL)
 
 

@@ -11,7 +11,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from typing import Dict, Optional, Tuple
 
-from sqlalchemy.orm import Session as DBSession
+from sqlalchemy.orm import Session as DBSession, load_only, selectinload
 
 from app.models.session import InterviewSession, Question, Answer, Report, SessionStatus
 from app.services.resume_parser import parse_resume, extract_text_from_pdf_bytes
@@ -53,26 +53,55 @@ def create_session(
     return session
 
 
-def list_sessions_for_user(db: DBSession, user_id: str) -> list:
-    """Lightweight session list for the 'my sessions' view — no Q&A payload."""
+def list_sessions_for_user(db: DBSession, user_id: str, limit: int = 20, offset: int = 0) -> Dict:
+    """
+    Paginated, lightweight session list for the 'my sessions' view — no Q&A payload.
+
+    Uses selectinload for `report` (one extra query total, not one per row — the
+    naive `s.report` access below used to lazy-load per session, an N+1 that's
+    invisible at 10 sessions and real at 10,000) and load_only to skip fetching
+    `resume_text`/`resume_parsed`, which aren't needed for the list view and can be
+    several KB each.
+    """
+    base_query = db.query(InterviewSession).filter_by(user_id=user_id)
+    total = base_query.count()
+
     sessions = (
-        db.query(InterviewSession)
-        .filter_by(user_id=user_id)
+        base_query
+        .options(
+            load_only(
+                InterviewSession.id,
+                InterviewSession.candidate_name,
+                InterviewSession.role,
+                InterviewSession.status,
+                InterviewSession.created_at,
+                InterviewSession.completed_at,
+            ),
+            selectinload(InterviewSession.report),
+        )
         .order_by(InterviewSession.created_at.desc())
+        .limit(limit)
+        .offset(offset)
         .all()
     )
-    return [
-        {
-            "id": s.id,
-            "candidate_name": s.candidate_name,
-            "role": s.role,
-            "status": s.status.value,
-            "overall_score": s.report.overall_score if s.report else None,
-            "created_at": s.created_at.isoformat(),
-            "completed_at": s.completed_at.isoformat() if s.completed_at else None,
-        }
-        for s in sessions
-    ]
+
+    return {
+        "sessions": [
+            {
+                "id": s.id,
+                "candidate_name": s.candidate_name,
+                "role": s.role,
+                "status": s.status.value,
+                "overall_score": s.report.overall_score if s.report else None,
+                "created_at": s.created_at.isoformat(),
+                "completed_at": s.completed_at.isoformat() if s.completed_at else None,
+            }
+            for s in sessions
+        ],
+        "total": total,
+        "limit": limit,
+        "offset": offset,
+    }
 
 
 def start_session(db: DBSession, session_id: str) -> Tuple[InterviewSession, Question]:

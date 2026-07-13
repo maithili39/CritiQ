@@ -68,9 +68,17 @@ def _looks_like_pdf(file_bytes: bytes) -> bool:
 
 @router.get("", response_model=dict)
 @limiter.limit("60/minute")
-def list_sessions(request: Request, db: DBSession = Depends(get_db), current_user: User = Depends(get_current_user)):
-    """List all interview sessions created by the current user."""
-    return {"sessions": orchestrator.list_sessions_for_user(db, current_user.id)}
+def list_sessions(
+    request: Request,
+    limit: int = 20,
+    offset: int = 0,
+    db: DBSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """List interview sessions created by the current user, paginated (default page size 20)."""
+    limit = max(1, min(limit, 100))
+    offset = max(0, offset)
+    return orchestrator.list_sessions_for_user(db, current_user.id, limit=limit, offset=offset)
 
 
 @router.post("", response_model=dict)
