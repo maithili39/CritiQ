@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
-from app.core.config import settings
+from app.core.config import settings, validate_cors_origins
 from app.core.limiter import limiter
 from app.core.logging import configure_logging
 from app.api import auth, sessions, admin, candidate
@@ -44,6 +44,8 @@ app = FastAPI(
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
+validate_cors_origins(settings.allowed_origins_list, settings.DEBUG)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.allowed_origins_list,
@@ -53,12 +55,20 @@ app.add_middleware(
 )
 
 
+# Swagger UI (/docs) and ReDoc (/redoc) load their JS/CSS from a CDN and inline
+# script - a strict CSP would break them. Everything else on this API only ever
+# returns JSON, so 'none' is safe and isn't a meaningful UX cost anywhere else.
+_CSP_EXEMPT_PATHS = {"/docs", "/redoc", "/openapi.json"}
+
+
 @app.middleware("http")
 async def add_security_headers(request: Request, call_next):
     response: Response = await call_next(request)
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Referrer-Policy"] = "no-referrer"
+    if request.url.path not in _CSP_EXEMPT_PATHS:
+        response.headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'"
     if settings.SECURITY_HSTS_SECONDS > 0:
         response.headers["Strict-Transport-Security"] = (
             f"max-age={settings.SECURITY_HSTS_SECONDS}; includeSubDomains"

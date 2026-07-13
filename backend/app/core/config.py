@@ -77,3 +77,26 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+
+def validate_cors_origins(origins: list[str], debug: bool) -> None:
+    """
+    CORSMiddleware combines allow_origins=["*"] with allow_credentials=True by
+    echoing back whatever Origin the request sent - it doesn't send a literal
+    "*". A "*" here doesn't relax CORS, it silently disables it entirely (any
+    origin, with credentials) while looking restrictive in config. Loud failure
+    in production; a warning is enough for local dev/DEBUG.
+    """
+    if "*" not in origins:
+        return
+    if debug:
+        import logging
+        logging.getLogger(__name__).warning(
+            "ALLOWED_ORIGINS includes '*' - CORS is effectively disabled (any origin allowed)."
+        )
+        return
+    raise RuntimeError(
+        "ALLOWED_ORIGINS includes '*' with DEBUG=False. This does not restrict CORS to '*' - "
+        "combined with credentials it allows any origin. Set ALLOWED_ORIGINS to your actual "
+        "frontend origin(s) before running in production."
+    )
