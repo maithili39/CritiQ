@@ -50,6 +50,11 @@ jobs:
           --health-retries 10
     env:
       DATABASE_URL: postgresql+psycopg://screening:screening@localhost:5432/screening
+      # Settings() requires these (no defaults) even though the drill never calls
+      # Claude or issues a JWT — alembic/env.py imports app.core.config at import
+      # time, same as the pytest suite (see tests/conftest.py's os.environ.setdefault).
+      ANTHROPIC_API_KEY: test-key
+      JWT_SECRET: test-secret-for-ci-drill-only
     steps:
       - uses: actions/checkout@v4
 
