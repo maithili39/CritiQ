@@ -1,0 +1,27 @@
+# Render Blueprint — deploys the backend as a Docker web service on Render's free tier.
+# https://render.com/docs/blueprint-spec
+#
+# Import this repo at https://dashboard.render.com/blueprints, then fill in the
+# `sync: false` values in the Render dashboard (never commit real secrets here).
+# DATABASE_URL and REDIS_URL come from your Supabase/Upstash free-tier projects.
+services:
+  - type: web
+    name: critiq-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: ALLOWED_ORIGINS
+        sync: false   # your Vercel frontend URL, e.g. https://critiq.vercel.app
+      - key: APP_BASE_URL
+        sync: false   # same Vercel URL - used to build invite/reset-password links

@@ -5,6 +5,11 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Bakes the embedding model weights into the image so no host without a persistent
+# disk (e.g. a free-tier platform) has to download them from the network on every
+# cold start - it's just there already.
+RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('all-MiniLM-L6-v2')"
+
 COPY . .
 
 RUN mkdir -p data/chroma knowledge_base/ai_ml knowledge_base/data_science
