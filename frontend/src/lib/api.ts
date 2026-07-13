@@ -210,6 +210,8 @@ export async function getCandidateSession(sessionId: string, token: string) {
     question: CandidateQuestion | null;
     questions_answered: number;
     max_questions: number;
+    is_processing: boolean;
+    processing_error: string | null;
   }>(sessionId, token, "");
 }
 
@@ -219,8 +221,11 @@ export async function startCandidateSession(sessionId: string, token: string) {
   );
 }
 
+// Returns immediately ({ status: "processing" }) - scoring + next-question
+// generation run in a background task on the server. Poll getCandidateSession
+// and wait for is_processing to clear to find out what happened.
 export async function submitCandidateAnswer(sessionId: string, token: string, questionId: string, answerText: string) {
-  return candidateRequest<{ next_question: CandidateQuestion | null; is_complete: boolean }>(
+  return candidateRequest<{ status: string }>(
     sessionId, token, `/answers?question_id=${encodeURIComponent(questionId)}`,
     { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ answer_text: answerText }) }
   );

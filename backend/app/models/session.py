@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Text, DateTime, Enum, ForeignKey, Integer, Float
+from sqlalchemy import Column, String, Text, DateTime, Enum, ForeignKey, Integer, Float, Boolean, Index
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
 import secrets
@@ -18,7 +18,10 @@ class InterviewSession(Base):
     __tablename__ = "interview_sessions"
 
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    user_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
+    # No standalone index=True here - the composite index below (user_id, created_at)
+    # already covers user_id-only lookups via its leftmost column, so a separate
+    # single-column index would just be redundant write overhead.
+    user_id = Column(String, ForeignKey("users.id"), nullable=False)
     candidate_name = Column(String(200), nullable=False)
     candidate_email = Column(String(200), nullable=True)
     role = Column(String(100), nullable=False)
@@ -31,6 +34,19 @@ class InterviewSession(Base):
     current_question_index = Column(Integer, default=0)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     completed_at = Column(DateTime, nullable=True)
+
+    # Candidate-flow answer submission runs scoring + next-question generation (or
+    # report generation, if it was the last question) in a background task instead
+    # of blocking the HTTP request. The frontend polls this session and waits for
+    # is_processing to clear rather than waiting on the Claude round-trip directly.
+    is_processing = Column(Boolean, nullable=False, default=False)
+    processing_error = Column(Text, nullable=True)
+
+    __table_args__ = (
+        # Satisfies list_sessions_for_user's filter-by-user_id + order-by-created_at
+        # directly from the index at scale, instead of a separate sort step.
+        Index("ix_interview_sessions_user_id_created_at", "user_id", "created_at"),
+    )
 
     user = relationship("User", back_populates="sessions")
     questions = relationship("Question", back_populates="session", cascade="all, delete-orphan")

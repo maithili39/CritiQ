@@ -1,10 +1,9 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import {
   getCandidateSession,
   startCandidateSession,
   submitCandidateAnswer,
-  completeCandidateSession,
   CandidateQuestion,
 } from "@/lib/api";
 import Navbar from "@/components/Navbar";
@@ -14,7 +13,9 @@ const ROLE_LABELS: Record<string, string> = {
   data_science: "Data Scientist",
 };
 
-type Stage = "loading" | "intro" | "active" | "submitting" | "advancing" | "done" | "error";
+const POLL_INTERVAL_MS = 1500;
+
+type Stage = "loading" | "intro" | "active" | "submitting" | "grading" | "done" | "error";
 
 export default function CandidateInterview() {
   const { sessionId } = useParams<{ sessionId: string }>();
@@ -28,6 +29,43 @@ export default function CandidateInterview() {
   const [maxQuestions, setMaxQuestions] = useState(0);
   const [question, setQuestion] = useState<CandidateQuestion | null>(null);
   const [answer, setAnswer] = useState("");
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current); }, []);
+
+  const pollUntilDone = useCallback((submittedQuestionOrder: number) => {
+    if (!sessionId) return;
+    pollRef.current = setInterval(async () => {
+      try {
+        const s = await getCandidateSession(sessionId, token);
+        if (s.is_processing) return;
+
+        if (pollRef.current) clearInterval(pollRef.current);
+
+        if (s.processing_error) {
+          setError("Something went wrong grading your answer. Please contact support — your answer was saved.");
+          setStage("error");
+          return;
+        }
+        if (s.status === "completed") {
+          setStage("done");
+          return;
+        }
+        if (s.question && s.question.order > submittedQuestionOrder) {
+          setQuestion(s.question);
+          setAnswer("");
+          setStage("active");
+          return;
+        }
+        // Shouldn't happen, but don't leave the candidate stuck on a spinner.
+        setStage("active");
+      } catch (err: unknown) {
+        if (pollRef.current) clearInterval(pollRef.current);
+        setError(err instanceof Error ? err.message : "Lost connection while waiting for your result.");
+        setStage("error");
+      }
+    }, POLL_INTERVAL_MS);
+  }, [sessionId, token]);
 
   const loadSession = useCallback(async () => {
     if (!sessionId || !token) {
@@ -44,7 +82,14 @@ export default function CandidateInterview() {
         setStage("done");
       } else if (s.status === "active" && s.question) {
         setQuestion(s.question);
-        setStage("active");
+        if (s.is_processing) {
+          // Candidate refreshed/reopened the link mid-grade — resume polling
+          // instead of showing the already-answered question as if unanswered.
+          setStage("grading");
+          pollUntilDone(s.question.order);
+        } else {
+          setStage("active");
+        }
       } else {
         setStage("intro");
       }
@@ -52,7 +97,7 @@ export default function CandidateInterview() {
       setError(err instanceof Error ? err.message : "This invite link is no longer valid.");
       setStage("error");
     }
-  }, [sessionId, token]);
+  }, [sessionId, token, pollUntilDone]);
 
   useEffect(() => { loadSession(); }, [loadSession]);
 
@@ -73,19 +118,13 @@ export default function CandidateInterview() {
     if (!sessionId || !question || !answer.trim()) return;
     setStage("submitting");
     setError("");
+
     try {
-      const res = await submitCandidateAnswer(sessionId, token, question.id, answer);
-      if (res.is_complete || !res.next_question) {
-        await completeCandidateSession(sessionId, token);
-        setStage("done");
-      } else {
-        setStage("advancing");
-        setTimeout(() => {
-          setQuestion(res.next_question);
-          setAnswer("");
-          setStage("active");
-        }, 1400);
-      }
+      // Returns immediately - scoring + next-question generation happen in a
+      // background task on the server, so we poll rather than await the result.
+      await submitCandidateAnswer(sessionId, token, question.id, answer);
+      setStage("grading");
+      pollUntilDone(question.order);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to submit your answer.");
       setStage("active");
@@ -106,7 +145,7 @@ export default function CandidateInterview() {
         <Navbar />
         <main className="section flex-1 flex items-center justify-center">
           <div className="card p-8 max-w-md text-center">
-            <h1 className="text-[22px] font-bold mb-3">Link unavailable</h1>
+            <h1 className="text-[22px] font-bold mb-3">Something went wrong</h1>
             <p className="muted text-[14px]">{error}</p>
           </div>
         </main>
@@ -158,7 +197,7 @@ export default function CandidateInterview() {
     );
   }
 
-  // active / submitting / advancing
+  // active / submitting / grading
   return (
     <div className="page-stack" style={{ background: "var(--bg-soft)" }}>
       <Navbar />
@@ -191,17 +230,19 @@ export default function CandidateInterview() {
 
           <div className="flex items-center justify-between pt-1">
             <span className="text-[12px] muted">
-              {stage === "advancing" ? "Moving to the next question…" : answer.length > 0 ? `${answer.length} characters` : "Take your time to answer thoroughly"}
+              {stage === "grading"
+                ? "Grading your answer and preparing the next question…"
+                : answer.length > 0 ? `${answer.length} characters` : "Take your time to answer thoroughly"}
             </span>
             <button
               onClick={handleSubmit}
               disabled={stage !== "active" || !answer.trim()}
               className="btn btn-primary text-[14px] px-6 py-2.5"
             >
-              {stage === "submitting" ? (
+              {stage === "submitting" || stage === "grading" ? (
                 <>
                   <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full spin" />
-                  Submitting...
+                  {stage === "grading" ? "Grading..." : "Submitting..."}
                 </>
               ) : "Submit answer"}
             </button>

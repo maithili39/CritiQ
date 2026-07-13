@@ -3,3 +3,7 @@
 pytest==8.4.2
 pytest-cov==6.3.0
 httpx==0.28.1
+
+# Load testing (backend/scripts/locustfile.py) - not used in CI, run manually
+# against a staging deploy: locust -f scripts/locustfile.py --host https://...
+locust==2.32.4

@@ -13,7 +13,7 @@ candidate should see live (it would let them game later answers) or at all
 import logging
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from sqlalchemy.orm import Session as DBSession
 
 from app.core.config import settings
@@ -57,8 +57,10 @@ def get_candidate_session(
         "role": session.role,
         "status": session.status.value,
         "question": _format_question(current_question),
-        "questions_answered": sum(1 for q in session.questions if q.answer is not None),
+        "questions_answered": sum(1 for q in session.questions if q.answer and q.answer.score is not None),
         "max_questions": settings.MAX_QUESTIONS,
+        "is_processing": session.is_processing,
+        "processing_error": session.processing_error,
     }
 
 
@@ -89,10 +91,16 @@ def submit_candidate_answer(
     session_id: str,
     question_id: str,
     payload: AnswerSubmit,
+    background_tasks: BackgroundTasks,
     db: DBSession = Depends(get_db),
     session: InterviewSession = Depends(get_session_by_access_token),
 ):
-    """Submit an answer. Returns only the next question — no score is shown to the candidate."""
+    """
+    Submit an answer. Returns immediately (202) instead of waiting on scoring +
+    next-question generation — those run in a background task, and the frontend
+    polls GET /{session_id} for is_processing to clear. This is what keeps a
+    candidate from sitting on the Claude round-trip for every single answer.
+    """
     answer_text = payload.answer_text.strip()
     if not answer_text:
         raise HTTPException(400, "Answer cannot be empty.")
@@ -100,17 +108,17 @@ def submit_candidate_answer(
         raise HTTPException(400, "Answer is too long (max 5000 characters).")
 
     try:
-        _answer, next_q, is_complete = orchestrator.submit_answer_and_advance(db, session_id, question_id, answer_text)
+        orchestrator.submit_answer_pending(db, session_id, question_id, answer_text)
     except ValueError as e:
-        raise HTTPException(404, str(e))
+        raise HTTPException(409 if "already processing" in str(e) else 404, str(e))
     except Exception:
         logger.exception("Failed to submit candidate answer for session %s", session_id)
         raise HTTPException(500, "Failed to submit your answer. Please try again.")
 
-    return {
-        "next_question": _format_question(next_q) if next_q else None,
-        "is_complete": is_complete,
-    }
+    background_tasks.add_task(
+        orchestrator.process_answer_in_background, session_id, question_id, answer_text
+    )
+    return {"status": "processing"}
 
 
 @router.post("/{session_id}/complete", response_model=dict)
@@ -121,8 +129,15 @@ def complete_candidate_session(
     db: DBSession = Depends(get_db),
     session: InterviewSession = Depends(get_session_by_access_token),
 ):
-    """Finalize the interview. The report is generated for the recruiter; the
-    candidate only sees a confirmation, never the score or recommendation."""
+    """
+    Finalize the interview. In the normal flow, the background task from the last
+    answer already auto-completes the session (see process_answer_in_background),
+    so this is a fallback/no-op in that case rather than a required step - calling
+    complete_session again would generate a second Report row for the same session.
+    """
+    if session.status == SessionStatus.completed:
+        return {"message": "Thanks — your responses have been submitted for review."}
+
     try:
         orchestrator.complete_session(db, session_id)
     except ValueError as e:

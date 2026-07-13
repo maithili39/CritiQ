@@ -1,4 +1,5 @@
 import logging
+import time
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -62,6 +63,32 @@ async def add_security_headers(request: Request, call_next):
         response.headers["Strict-Transport-Security"] = (
             f"max-age={settings.SECURITY_HSTS_SECONDS}; includeSubDomains"
         )
+    return response
+
+
+@app.middleware("http")
+async def log_request_timing(request: Request, call_next):
+    """
+    Without this, there was no visibility into which stage of an interview is
+    slow - only "the whole request took N seconds" (or nothing at all, since
+    Sentry's traces_sample_rate defaults to 10%, not every request). This logs
+    every request's latency; slow ones (>3s) log at WARNING so they stand out
+    in dashboards/alerts without configuring a separate APM tool.
+    """
+    start = time.perf_counter()
+    response: Response = await call_next(request)
+    duration_ms = round((time.perf_counter() - start) * 1000, 1)
+
+    log_fn = logger.warning if duration_ms > 3000 else logger.info
+    log_fn(
+        "%s %s -> %d in %sms",
+        request.method,
+        request.url.path,
+        response.status_code,
+        duration_ms,
+        extra={"duration_ms": duration_ms, "path": request.url.path, "status_code": response.status_code},
+    )
+    response.headers["X-Response-Time-Ms"] = str(duration_ms)
     return response
 
 app.include_router(auth.router, prefix="/api")

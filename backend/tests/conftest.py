@@ -20,6 +20,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
+import app.core.database as db_module
 from app.core.database import Base, get_db
 from app.core.limiter import limiter
 from app.main import app
@@ -54,9 +55,18 @@ def client(db_engine):
     app.dependency_overrides[get_db] = override_get_db
     limiter.enabled = False  # rate limits would make a fast test suite flaky/order-dependent
 
+    # BackgroundTasks (e.g. process_answer_in_background) open their own DB session
+    # directly via `app.core.database.SessionLocal` rather than through the get_db
+    # dependency (they outlive the request, so they can't reuse the request-scoped
+    # session) - patch the module-level SessionLocal too, or they'd hit the real
+    # production engine instead of this test's isolated in-memory one.
+    original_session_local = db_module.SessionLocal
+    db_module.SessionLocal = testing_session_local
+
     with TestClient(app) as test_client:
         yield test_client
 
+    db_module.SessionLocal = original_session_local
     app.dependency_overrides.clear()
     limiter.enabled = True
 

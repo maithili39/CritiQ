@@ -92,6 +92,10 @@ def call_tool(
         **({"cache_control": {"type": "ephemeral"}} if cache_system else {}),
     }]
 
+    # Per-call timing so it's visible *which stage* of an interview is slow (resume
+    # parsing vs question generation vs answer evaluation vs report generation) -
+    # a single request-level duration can't tell those apart.
+    start = time.perf_counter()
     message = create_message(
         model=model,
         max_tokens=max_tokens,
@@ -100,6 +104,8 @@ def call_tool(
         tool_choice={"type": "tool", "name": tool["name"]},
         messages=[{"role": "user", "content": user_content}],
     )
+    duration_ms = round((time.perf_counter() - start) * 1000, 1)
+    logger.info("Claude call (%s) took %sms", tool["name"], duration_ms)
 
     for block in message.content:
         if block.type == "tool_use":
