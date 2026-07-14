@@ -22,19 +22,22 @@ RUN mkdir -p data/chroma knowledge_base/ai_ml knowledge_base/data_science
 
 # Start-up sequence:
 #   1. Run Alembic migrations (safe to re-run — idempotent).
-#   2. Run ingest.py only if ChromaDB is empty or missing, so redeploying onto a
-#      persistent disk doesn't re-ingest 3 PDFs from scratch every time (~30-60 s).
-#      The python one-liner exits with code 0 ("already populated, skip") or 1
-#      ("empty/missing, proceed"). On local dev / free-tier without a persistent disk
-#      the dir is always empty at start, so the full ingest still runs.
-#   3. Start uvicorn.
+#   2. Start uvicorn immediately so the platform's port scan succeeds right away.
+#   3. Kick off ingest.py in the background, only if ChromaDB is empty or missing,
+#      so redeploying onto a persistent disk doesn't re-ingest from scratch every
+#      time. Ingestion runs one page's chunks through the embedding model per
+#      call, which on a free-tier CPU can take 10+ minutes for a large PDF —
+#      running it *before* uvicorn bound the port made every deploy without a
+#      persistent disk time out on the platform's port scan (RAG questions will
+#      fall back to a generic question until ingestion finishes in the background;
+#      that's a much better failure mode than the whole deploy dying).
 CMD ["sh", "-c", "\
   alembic upgrade head && \
-  python -c \"\
+  ( python -c \"\
 import os, sys\n\
 d = os.environ.get('CHROMA_PERSIST_DIR', 'data/chroma')\n\
 populated = os.path.isdir(d) and any(True for _ in os.scandir(d))\n\
 sys.exit(0 if populated else 1)\
 \" && echo 'ChromaDB already populated, skipping ingest.' \
-  || (echo 'ChromaDB empty — running ingest...' && python ingest.py --role all) && \
+  || (echo 'ChromaDB empty — running ingest in the background...' && python ingest.py --role all) & ) && \
   uvicorn app.main:app --host 0.0.0.0 --port 8000 --proxy-headers --forwarded-allow-ips='*'"]
