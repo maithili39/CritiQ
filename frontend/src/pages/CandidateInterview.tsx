@@ -134,7 +134,7 @@ export default function CandidateInterview() {
   if (stage === "loading") {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--bg-soft)" }}>
-        <span className="w-8 h-8 border-2 rounded-full spin" style={{ borderColor: "#e5e7eb", borderTopColor: "#ea0954" }} />
+        <span className="w-8 h-8 border-2 rounded-full spin" style={{ borderColor: "#e5e7eb", borderTopColor: "#0d9488" }} />
       </div>
     );
   }
@@ -182,7 +182,7 @@ export default function CandidateInterview() {
         <main className="section flex-1 flex items-center justify-center">
           <div className="card p-8 max-w-md text-center fade-up">
             <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-5" style={{ background: "rgba(16,185,129,0.1)" }}>
-              <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="#10b981" strokeWidth={2.5}>
+              <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="#16a34a" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
               </svg>
             </div>

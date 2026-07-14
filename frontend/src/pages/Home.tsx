@@ -69,7 +69,7 @@ export default function Home() {
         <div className="shell shell-wide relative z-10 flex flex-col items-center justify-center">
           <div className="fade-up text-center flex flex-col items-center justify-center">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-6" style={{ background: "var(--surface-alt)", border: "1px solid var(--border-strong)" }}>
-              <span className="w-2 h-2 rounded-full" style={{ background: "var(--brand)", boxShadow: "0 0 10px rgba(234,9,84,0.6)" }} />
+              <span className="w-2 h-2 rounded-full" style={{ background: "var(--brand)", boxShadow: "0 0 10px rgba(13,148,136,0.6)" }} />
               <span className="text-[12px] font-semibold tracking-wide uppercase" style={{ color: "var(--ink)" }}>The New Standard for Technical Hiring</span>
             </div>
             
@@ -130,7 +130,7 @@ export default function Home() {
               >
                 <div className="absolute top-0 right-0 w-40 h-40 bg-[radial-gradient(circle_at_top_right,var(--brand-soft),transparent_70%)] opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
                 
-                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-6 shadow-sm relative z-10" style={{ background: "linear-gradient(135deg, rgba(234,9,84,0.12), rgba(234,9,84,0.02))", border: "1px solid var(--brand-line)", color: "var(--brand)" }}>
+                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-6 shadow-sm relative z-10" style={{ background: "linear-gradient(135deg, rgba(13,148,136,0.12), rgba(13,148,136,0.02))", border: "1px solid var(--brand-line)", color: "var(--brand)" }}>
                   <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                     <path strokeLinecap="round" strokeLinejoin="round" d={f.icon} />
                   </svg>

@@ -192,7 +192,7 @@ export default function SetupPage() {
                         style={{
                           border: active ? "1.5px solid var(--brand)" : "1.5px solid var(--border)",
                           background: active ? "var(--brand-soft)" : "#fff",
-                          boxShadow: active ? "0 0 0 3px rgba(234,9,84,0.09)" : "none",
+                          boxShadow: active ? "0 0 0 3px rgba(13,148,136,0.09)" : "none",
                         }}
                       >
                         <div className="text-[15px] font-semibold mb-1">{r.label}</div>

@@ -5,8 +5,8 @@ import Navbar from "@/components/Navbar";
 import SiteFooter from "@/components/SiteFooter";
 
 const REC: Record<string, { label: string; color: string; bg: string; border: string }> = {
-  strong_yes: { label: "Strong Hire",  color: "#10b981", bg: "rgba(16,185,129,0.06)",  border: "rgba(16,185,129,0.2)" },
-  yes:        { label: "Hire",         color: "#10b981", bg: "rgba(16,185,129,0.06)",  border: "rgba(16,185,129,0.2)" },
+  strong_yes: { label: "Strong Hire",  color: "#16a34a", bg: "rgba(16,185,129,0.06)",  border: "rgba(16,185,129,0.2)" },
+  yes:        { label: "Hire",         color: "#16a34a", bg: "rgba(16,185,129,0.06)",  border: "rgba(16,185,129,0.2)" },
   maybe:      { label: "Needs Review", color: "#f59e0b", bg: "rgba(245,158,11,0.06)",  border: "rgba(245,158,11,0.2)" },
   no:         { label: "No Hire",      color: "#ef4444", bg: "rgba(239,68,68,0.06)",   border: "rgba(239,68,68,0.2)"  },
 };
@@ -17,7 +17,7 @@ const ROLE_LABELS: Record<string, string> = {
 };
 
 function scoreColor(s: number) {
-  return s >= 7 ? "#10b981" : s >= 5 ? "#f59e0b" : "#ef4444";
+  return s >= 7 ? "#16a34a" : s >= 5 ? "#f59e0b" : "#ef4444";
 }
 
 export default function ReportPage() {
@@ -43,7 +43,7 @@ export default function ReportPage() {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--bg-soft)" }}>
         <div className="flex flex-col items-center gap-3">
-          <span className="w-8 h-8 border-2 rounded-full spin" style={{ borderColor: "#e5e7eb", borderTopColor: "#ea0954" }} />
+          <span className="w-8 h-8 border-2 rounded-full spin" style={{ borderColor: "#e5e7eb", borderTopColor: "#0d9488" }} />
           <span className="text-[14px] muted">Loading report</span>
         </div>
       </div>
@@ -101,7 +101,7 @@ export default function ReportPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {report.strengths && (
                 <div className="rounded-2xl p-5" style={{ background: "rgba(16,185,129,0.04)", border: "1px solid rgba(16,185,129,0.15)" }}>
-                  <div className="text-[11px] font-bold uppercase tracking-widest mb-2" style={{ color: "#10b981" }}>Strengths</div>
+                  <div className="text-[11px] font-bold uppercase tracking-widest mb-2" style={{ color: "#16a34a" }}>Strengths</div>
                   <p className="text-[13px] leading-relaxed" style={{ color: "#374151" }}>{report.strengths}</p>
                 </div>
               )}
@@ -159,7 +159,7 @@ export default function ReportPage() {
                         className="w-full flex items-center gap-3 px-5 py-4 text-left"
                         style={{ background: isOpen ? "#f9fafb" : "#fff" }}
                       >
-                        <span className="text-[11px] font-bold w-6 flex-shrink-0" style={{ color: "#ea0954" }}>
+                        <span className="text-[11px] font-bold w-6 flex-shrink-0" style={{ color: "#0d9488" }}>
                           Q{i + 1}
                         </span>
                         {q.topic && (
@@ -201,7 +201,7 @@ export default function ReportPage() {
                               </div>
                               <p className="text-[13px] leading-relaxed" style={{ color: "#4b5563" }}>{q.answer.text}</p>
                               {q.answer.rationale && (
-                                <p className="text-[12px] mt-3 leading-relaxed" style={{ color: "#ea0954" }}>
+                                <p className="text-[12px] mt-3 leading-relaxed" style={{ color: "#0d9488" }}>
                                   <span className="font-semibold">Feedback:</span> {q.answer.rationale}
                                 </p>
                               )}

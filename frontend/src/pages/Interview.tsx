@@ -5,7 +5,7 @@ import { submitAnswer, completeSession } from "@/lib/api";
 import Navbar from "@/components/Navbar";
 
 function ScoreDisplay({ score }: { score: number }) {
-  const color = score >= 7 ? "#10b981" : score >= 5 ? "#f59e0b" : "#ef4444";
+  const color = score >= 7 ? "#16a34a" : score >= 5 ? "#f59e0b" : "#ef4444";
   const label = score >= 7 ? "Strong" : score >= 5 ? "Average" : "Needs work";
   return (
     <div className="flex flex-col items-center gap-1">
@@ -216,7 +216,7 @@ export default function InterviewPage() {
                   className="progress-fill"
                   style={{
                     width: `${(feedback.score / 10) * 100}%`,
-                    background: feedback.score >= 7 ? "#10b981" : feedback.score >= 5 ? "#f59e0b" : "#ef4444",
+                    background: feedback.score >= 7 ? "#16a34a" : feedback.score >= 5 ? "#f59e0b" : "#ef4444",
                   }}
                 />
               </div>
@@ -228,7 +228,7 @@ export default function InterviewPage() {
                   className="rounded-xl p-5"
                   style={{ background: "rgba(16,185,129,0.04)", border: "1px solid rgba(16,185,129,0.2)" }}
                 >
-                  <div className="text-[11px] font-bold uppercase tracking-wider mb-2" style={{ color: "#10b981" }}>
+                  <div className="text-[11px] font-bold uppercase tracking-wider mb-2" style={{ color: "#16a34a" }}>
                     Strengths
                   </div>
                   <div className="text-[13px] leading-relaxed" style={{ color: "#374151" }}>
@@ -254,7 +254,7 @@ export default function InterviewPage() {
             <div className="flex items-center justify-center gap-2.5 text-[13px] py-3" style={{ color: "#6b7280" }}>
               <span
                 className="w-3.5 h-3.5 border-2 rounded-full spin"
-                style={{ borderColor: "#e5e7eb", borderTopColor: "#ea0954" }}
+                style={{ borderColor: "#e5e7eb", borderTopColor: "#0d9488" }}
               />
               {isComplete ? "Generating your report…" : "Moving to next question…"}
             </div>
