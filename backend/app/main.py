@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import time
 from contextlib import asynccontextmanager
@@ -11,6 +12,7 @@ from app.api import admin, auth, candidate, sessions
 from app.core.config import settings, startup_security_warnings, validate_cors_origins
 from app.core.limiter import limiter
 from app.core.logging import configure_logging
+from app.rag.ingestion import run_startup_ingest_if_empty
 
 configure_logging()
 logger = logging.getLogger(__name__)
@@ -32,6 +34,12 @@ async def lifespan(app: FastAPI):
     # in the platform's deploy logs rather than silently accumulating in prod.
     startup_security_warnings()
     # Schema is managed by Alembic migrations (run `alembic upgrade head` before starting).
+
+    # Fire-and-forget: runs ingestion in a worker thread so the CPU-bound embedding
+    # work doesn't block the event loop, and `yield` below happens immediately so
+    # uvicorn finishes startup and binds the port right away rather than waiting
+    # on however long ingestion takes.
+    asyncio.create_task(asyncio.to_thread(run_startup_ingest_if_empty))
     yield
 
 

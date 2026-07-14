@@ -198,6 +198,33 @@ def ingest_role_documents(role: str, force_reingest: bool = False) -> int:
     return total_chunks
 
 
+def run_startup_ingest_if_empty() -> None:
+    """
+    Ingest every role's knowledge base if ChromaDB is empty or missing.
+
+    Meant to be run from a background thread kicked off in the app's lifespan
+    (see app/main.py), not from the container's CMD. Shelling this out with a
+    POSIX `&` before starting uvicorn was tried first and was unreliable — dash's
+    subshell/backgrounding semantics don't reliably detach the job, so the
+    platform's port scan kept timing out waiting for uvicorn to bind. Running it
+    as a real background thread inside the same process guarantees uvicorn binds
+    the port immediately regardless of how long ingestion takes (large PDFs on a
+    free-tier CPU can take 10+ minutes); RAG questions just fall back to a
+    generic question until ingestion finishes.
+    """
+    persist_dir = settings.CHROMA_PERSIST_DIR
+    if os.path.isdir(persist_dir) and any(True for _ in os.scandir(persist_dir)):
+        logger.info("ChromaDB already populated at %s, skipping startup ingest.", persist_dir)
+        return
+
+    logger.info("ChromaDB empty — running startup ingest in the background...")
+    for role in ROLE_COLLECTION_MAP:
+        try:
+            ingest_role_documents(role)
+        except Exception:
+            logger.exception("Startup ingest failed for role %r", role)
+
+
 def get_collection(role: str) -> chromadb.Collection:
     client = _get_chroma_client()
     collection_name = ROLE_COLLECTION_MAP.get(role, f"knowledge_{role}")

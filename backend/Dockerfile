@@ -22,22 +22,12 @@ RUN mkdir -p data/chroma knowledge_base/ai_ml knowledge_base/data_science
 
 # Start-up sequence:
 #   1. Run Alembic migrations (safe to re-run — idempotent).
-#   2. Start uvicorn immediately so the platform's port scan succeeds right away.
-#   3. Kick off ingest.py in the background, only if ChromaDB is empty or missing,
-#      so redeploying onto a persistent disk doesn't re-ingest from scratch every
-#      time. Ingestion runs one page's chunks through the embedding model per
-#      call, which on a free-tier CPU can take 10+ minutes for a large PDF —
-#      running it *before* uvicorn bound the port made every deploy without a
-#      persistent disk time out on the platform's port scan (RAG questions will
-#      fall back to a generic question until ingestion finishes in the background;
-#      that's a much better failure mode than the whole deploy dying).
-CMD ["sh", "-c", "\
-  alembic upgrade head && \
-  ( python -c \"\
-import os, sys\n\
-d = os.environ.get('CHROMA_PERSIST_DIR', 'data/chroma')\n\
-populated = os.path.isdir(d) and any(True for _ in os.scandir(d))\n\
-sys.exit(0 if populated else 1)\
-\" && echo 'ChromaDB already populated, skipping ingest.' \
-  || (echo 'ChromaDB empty — running ingest in the background...' && python ingest.py --role all) & ) && \
-  uvicorn app.main:app --host 0.0.0.0 --port 8000 --proxy-headers --forwarded-allow-ips='*'"]
+#   2. Start uvicorn, which binds the port immediately.
+# Knowledge-base ingestion (if ChromaDB is empty or missing) runs from the app's
+# own lifespan (see app/main.py + app/rag/ingestion.py:run_startup_ingest_if_empty)
+# as a background thread, not from this shell script — a `python ingest.py & `
+# backgrounding trick here was tried first and didn't reliably detach on this
+# image's `sh` (dash), leaving uvicorn's port bind blocked behind however long
+# ingestion took (10+ minutes for a large PDF on a free-tier CPU), which is
+# exactly what caused the platform's port scan to keep timing out.
+CMD ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --proxy-headers --forwarded-allow-ips='*'"]
