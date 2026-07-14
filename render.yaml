@@ -16,6 +16,9 @@ services:
     name: critiq-redis
     plan: free
     maxmemoryPolicy: allkeys-lru
+    # Backend reaches this over Render's private network (fromService below), so
+    # no external IPs need access.
+    ipAllowList: []
 
   - type: web
     name: critiq-backend
