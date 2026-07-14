@@ -5,7 +5,6 @@ import SiteFooter from "@/components/SiteFooter";
 const STATS = [
   { num: "8", label: "Questions per assessment, generated live" },
   { num: "2", label: "Specialized role tracks" },
-  { num: "1-at-a-time", label: "Questions adapt to your previous answer" },
   { num: "100%", label: "Questions grounded in cited source material" },
 ];
 
@@ -66,8 +65,6 @@ export default function Home() {
       <Navbar />
 
       <section className="relative pt-10 pb-16 md:pt-16 md:pb-24 overflow-hidden">
-        {/* Subtle background glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-[radial-gradient(ellipse_at_center,rgba(234,9,84,0.08)_0%,transparent_70%)] pointer-events-none" />
         
         <div className="shell shell-wide relative z-10 flex flex-col items-center justify-center">
           <div className="fade-up text-center flex flex-col items-center justify-center">
