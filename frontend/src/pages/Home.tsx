@@ -100,29 +100,6 @@ export default function Home() {
                 loading="eager"
               />
             </div>
-            <div
-              className="card"
-              style={{
-                position: "absolute",
-                bottom: "-1.4rem",
-                left: "-1.2rem",
-                padding: "0.9rem 1.2rem",
-                display: "flex",
-                alignItems: "center",
-                gap: "0.7rem",
-                background: "#fff",
-              }}
-            >
-              <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: "var(--brand-soft)", color: "var(--brand)" }}>
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div>
-                <div className="text-[13px] font-bold" style={{ color: "var(--ink)" }}>Session scored</div>
-                <div className="text-[12px]" style={{ color: "var(--muted)" }}>Report ready in seconds</div>
-              </div>
-            </div>
           </div>
         </div>
       </section>
