@@ -1,14 +1,15 @@
 import re
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
-from sqlalchemy.orm import Session as DBSession
 from sqlalchemy import and_
+from sqlalchemy.orm import Session as DBSession
 
+from app.api.deps import get_current_user
+from app.core.config import settings
 from app.core.database import get_db
 from app.core.limiter import limiter
-from app.core.config import settings
 from app.core.security import (
     create_access_token,
     generate_urlsafe_token,
@@ -17,7 +18,6 @@ from app.core.security import (
     verify_password,
 )
 from app.models.user import User
-from app.api.deps import get_current_user
 from app.services.emailer import send_text_email
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -49,7 +49,7 @@ def _utcnow() -> datetime:
     # (no tz), so SQLAlchemy hands back naive datetimes on read. Comparing an aware "now"
     # against those raises `TypeError: can't compare offset-naive and offset-aware
     # datetimes`, so this strips tzinfo rather than using datetime.utcnow() (deprecated).
-    return datetime.now(timezone.utc).replace(tzinfo=None)
+    return datetime.now(UTC).replace(tzinfo=None)
 
 
 def _normalize_email(email: str) -> str:

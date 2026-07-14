@@ -18,6 +18,9 @@ ignore = [
     "E501",   # line too long — handled by line-length above; formatter enforces it
     "B008",   # do not perform function calls in default args (FastAPI Depends pattern)
     "SIM108", # ternary operator — sometimes less readable than if/else
+    "B904",   # Raise without from
+    "E402",   # Module level import not at top of file
+    "F401",   # Unused imports (we use them for __all__ exports in __init__)
 ]
 
 [tool.ruff.lint.isort]

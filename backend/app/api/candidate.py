@@ -11,15 +11,14 @@ candidate should see live (it would let them game later answers) or at all
 """
 
 import logging
-from typing import Optional
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from sqlalchemy.orm import Session as DBSession
 
+from app.api.deps import get_session_by_access_token
 from app.core.config import settings
 from app.core.database import get_db
 from app.core.limiter import limiter
-from app.api.deps import get_session_by_access_token
 from app.models.session import InterviewSession, SessionStatus
 from app.schemas.interview import AnswerSubmit
 from app.services import interview_orchestrator as orchestrator
@@ -28,7 +27,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/candidate/sessions", tags=["candidate"])
 
 
-def _format_question(question) -> Optional[dict]:
+def _format_question(question) -> dict | None:
     if question is None:
         return None
     return {

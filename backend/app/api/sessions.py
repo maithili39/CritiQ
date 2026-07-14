@@ -1,22 +1,22 @@
+import contextlib
 import json
 import logging
 import re
 
-from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile, File, Form
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
 from fastapi.concurrency import run_in_threadpool
 from sqlalchemy.orm import Session as DBSession
-from typing import Optional
 
+from app.api.deps import get_current_user
+from app.core.config import settings
 from app.core.database import get_db
 from app.core.limiter import limiter
 from app.core.roles import ALLOWED_ROLES, ROLE_LABELS
 from app.models.session import InterviewSession, SessionStatus
 from app.models.user import User
-from app.api.deps import get_current_user
 from app.schemas.interview import AnswerSubmit
 from app.services import interview_orchestrator as orchestrator
 from app.services.emailer import send_text_email
-from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/sessions", tags=["sessions"])
@@ -86,7 +86,7 @@ async def create_session(
     request: Request,
     candidate_name: str = Form(...),
     role: str = Form(...),
-    candidate_email: Optional[str] = Form(None),
+    candidate_email: str | None = Form(None),
     resume: UploadFile = File(...),
     db: DBSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -197,10 +197,8 @@ def submit_answer(
         raise HTTPException(500, "Failed to submit answer. Please try again.")
 
     rationale = {}
-    try:
+    with contextlib.suppress(Exception):
         rationale = json.loads(answer.score_rationale or "{}")
-    except Exception:
-        pass
 
     session = db.query(InterviewSession).filter_by(id=session_id).first()
 
@@ -300,7 +298,7 @@ def get_report(
     return summary["report"]
 
 
-def _format_question(question) -> Optional[dict]:
+def _format_question(question) -> dict | None:
     if question is None:
         return None
     return {

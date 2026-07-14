@@ -5,18 +5,19 @@ Ties together: resume parsing → RAG retrieval → question generation → answ
 Acts as the single source of truth for interview session state transitions.
 """
 
+import contextlib
 import json
 import logging
 from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime, timezone
-from typing import Dict, Optional, Tuple
+from datetime import UTC, datetime
 
-from sqlalchemy.orm import Session as DBSession, load_only, selectinload
+from sqlalchemy.orm import Session as DBSession
+from sqlalchemy.orm import load_only, selectinload
 
-from app.models.session import InterviewSession, Question, Answer, Report, SessionStatus
-from app.services.resume_parser import parse_resume, extract_text_from_pdf_bytes
-from app.services.question_generator import generate_question, evaluate_answer, generate_report
 from app.core.config import settings
+from app.models.session import Answer, InterviewSession, Question, Report, SessionStatus
+from app.services.question_generator import evaluate_answer, generate_question, generate_report
+from app.services.resume_parser import extract_text_from_pdf_bytes, parse_resume
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +54,7 @@ def create_session(
     return session
 
 
-def list_sessions_for_user(db: DBSession, user_id: str, limit: int = 20, offset: int = 0) -> Dict:
+def list_sessions_for_user(db: DBSession, user_id: str, limit: int = 20, offset: int = 0) -> dict:
     """
     Paginated, lightweight session list for the 'my sessions' view — no Q&A payload.
 
@@ -104,7 +105,7 @@ def list_sessions_for_user(db: DBSession, user_id: str, limit: int = 20, offset:
     }
 
 
-def start_session(db: DBSession, session_id: str) -> Tuple[InterviewSession, Question]:
+def start_session(db: DBSession, session_id: str) -> tuple[InterviewSession, Question]:
     """
     Transitions session to active and generates the first question.
     """
@@ -124,8 +125,8 @@ def start_session(db: DBSession, session_id: str) -> Tuple[InterviewSession, Que
 def get_next_question(
     db: DBSession,
     session_id: str,
-    previous_answer_text: Optional[str] = None,
-) -> Optional[Question]:
+    previous_answer_text: str | None = None,
+) -> Question | None:
     """
     Generates and returns the next question.
     Returns None if max questions reached.
@@ -192,7 +193,7 @@ def submit_answer_and_advance(
     session_id: str,
     question_id: str,
     answer_text: str,
-) -> Tuple[Answer, Optional[Question], bool]:
+) -> tuple[Answer, Question | None, bool]:
     """
     Scores the submitted answer and generates the next question concurrently,
     instead of the two sequential Claude calls `submit_answer` then
@@ -421,7 +422,7 @@ def process_answer_in_background(session_id: str, question_id: str, answer_text:
         db.close()
 
 
-def get_session_summary(db: DBSession, session_id: str) -> Dict:
+def get_session_summary(db: DBSession, session_id: str) -> dict:
     """Returns full session state including all Q&A and report."""
     session = _get_session(db, session_id)
     parsed = json.loads(session.resume_parsed or "{}")
@@ -439,10 +440,8 @@ def get_session_summary(db: DBSession, session_id: str) -> Dict:
         }
         if q.answer:
             rationale = {}
-            try:
+            with contextlib.suppress(Exception):
                 rationale = json.loads(q.answer.score_rationale or "{}")
-            except Exception:
-                pass
             q_data["answer"] = {
                 "id": q.answer.id,
                 "text": q.answer.text,
@@ -526,17 +525,17 @@ def _build_and_store_report(db: DBSession, session: InterviewSession) -> Report:
     db.add(report)
 
     session.status = SessionStatus.completed
-    session.completed_at = datetime.now(timezone.utc)
+    session.completed_at = datetime.now(UTC)
     return report
 
 
 def _generate_and_store_question(
     db: DBSession,
     session: InterviewSession,
-    parsed_resume: Dict,
+    parsed_resume: dict,
     question_number: int,
-    previous_questions: list = None,
-    previous_answer: str = None,
+    previous_questions: list | None = None,
+    previous_answer: str | None = None,
 ) -> Question:
     previous_questions = previous_questions or []
 

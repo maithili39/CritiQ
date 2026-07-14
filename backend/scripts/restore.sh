@@ -32,7 +32,8 @@ if [ "${RESTORE_CONFIRM:-}" != "yes" ]; then
 fi
 
 echo "==> Restoring Postgres database..."
-pg_restore --dbname="${DATABASE_URL}" --clean --if-exists --no-owner "${BACKUP_DIR}/screening.dump"
+PG_URL="${DATABASE_URL/postgresql+psycopg:/postgresql:}"
+pg_restore --dbname="${PG_URL}" --clean --if-exists --no-owner "${BACKUP_DIR}/screening.dump"
 
 if [ -f "${BACKUP_DIR}/chroma.tar.gz" ]; then
   echo "==> Restoring ChromaDB persistence dir..."

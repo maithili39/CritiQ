@@ -1,9 +1,10 @@
 """Admin endpoints for knowledge base management."""
 
 from fastapi import APIRouter, Depends, HTTPException
+
 from app.api.deps import require_admin_api_key
-from app.rag.ingestion import ingest_role_documents, get_collection
 from app.core.roles import ROLES
+from app.rag.ingestion import get_collection, ingest_role_documents
 
 router = APIRouter(prefix="/admin", tags=["admin"], dependencies=[Depends(require_admin_api_key)])
 

@@ -1,7 +1,8 @@
+import uuid
+from datetime import UTC, datetime
+
 from sqlalchemy import Boolean, Column, DateTime, Integer, String
 from sqlalchemy.orm import relationship
-from datetime import datetime, timezone
-import uuid
 
 from app.core.database import Base
 
@@ -20,6 +21,6 @@ class User(Base):
     password_reset_token_expires_at = Column(DateTime, nullable=True)
     email_verification_token_hash = Column(String, nullable=True)
     email_verification_token_expires_at = Column(DateTime, nullable=True)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=lambda: datetime.now(UTC))
 
     sessions = relationship("InterviewSession", back_populates="user")

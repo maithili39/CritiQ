@@ -3,9 +3,9 @@
 import pytest
 from sqlalchemy.orm import sessionmaker
 
-from app.services import interview_orchestrator as orchestrator
-from app.models.user import User
 from app.core.security import hash_password
+from app.models.user import User
+from app.services import interview_orchestrator as orchestrator
 
 
 @pytest.fixture()

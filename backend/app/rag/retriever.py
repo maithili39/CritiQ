@@ -5,14 +5,13 @@ Constructs dynamic queries from resume + role, retrieves top-k chunks
 from ChromaDB using cosine similarity, and filters by relevance threshold.
 """
 
-from typing import List, Dict
-from sentence_transformers import SentenceTransformer
+
 
 from app.core.config import settings
-from app.rag.ingestion import get_collection, _get_embedding_model
+from app.rag.ingestion import _get_embedding_model, get_collection
 
 
-def _build_query(role: str, skills: List[str], topics: List[str], focus: str = "") -> str:
+def _build_query(role: str, skills: list[str], topics: list[str], focus: str = "") -> str:
     """
     Builds a retrieval query combining role context, candidate skills, and focus area.
     Richer queries yield more relevant chunks than simple keyword lookup.
@@ -31,12 +30,12 @@ def _build_query(role: str, skills: List[str], topics: List[str], focus: str = "
 
 def retrieve_context(
     role: str,
-    skills: List[str],
-    topics: List[str],
+    skills: list[str],
+    topics: list[str],
     focus: str = "",
-    top_k: int = None,
+    top_k: int | None = None,
     min_score: float = 0.25,
-) -> List[Dict]:
+) -> list[dict]:
     """
     Retrieves relevant knowledge chunks for question generation.
 
@@ -63,7 +62,7 @@ def retrieve_context(
     for doc, meta, dist in zip(
         results["documents"][0],
         results["metadatas"][0],
-        results["distances"][0],
+        results["distances"][0], strict=False,
     ):
         # ChromaDB cosine distance: 0=identical, 2=opposite. Convert to similarity.
         similarity = 1 - (dist / 2)
@@ -82,10 +81,10 @@ def retrieve_context(
 
 def retrieve_for_question_generation(
     role: str,
-    parsed_resume: Dict,
-    previous_topics: List[str] = None,
+    parsed_resume: dict,
+    previous_topics: list[str] | None = None,
     focus_topic: str = "",
-) -> Dict:
+) -> dict:
     """
     High-level retrieval call used by the question generator.
 

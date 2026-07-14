@@ -2,17 +2,15 @@ import logging
 import time
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
-from fastapi import Request
-from fastapi import Response
+from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
-from app.core.config import settings, validate_cors_origins, startup_security_warnings
+from app.api import admin, auth, candidate, sessions
+from app.core.config import settings, startup_security_warnings, validate_cors_origins
 from app.core.limiter import limiter
 from app.core.logging import configure_logging
-from app.api import auth, sessions, admin, candidate
 
 configure_logging()
 logger = logging.getLogger(__name__)

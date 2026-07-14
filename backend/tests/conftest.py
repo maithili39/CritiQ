@@ -24,8 +24,8 @@ import app.core.database as db_module
 from app.core.database import Base, get_db
 from app.core.limiter import limiter
 from app.main import app
-from app.models import session as _session_models  # noqa: F401 — registers tables
-from app.models import user as _user_models  # noqa: F401 — registers tables
+from app.models import session as _session_models
+from app.models import user as _user_models
 
 
 @pytest.fixture()

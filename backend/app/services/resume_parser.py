@@ -6,7 +6,6 @@ Output drives RAG query construction and question difficulty calibration.
 """
 
 import logging
-from typing import Dict
 
 import fitz  # PyMuPDF
 
@@ -73,7 +72,7 @@ def extract_text_from_pdf_bytes(pdf_bytes: bytes) -> str:
     return text.strip()
 
 
-def parse_resume(resume_text: str) -> Dict:
+def parse_resume(resume_text: str) -> dict:
     """
     Uses Claude to extract structured data from resume text.
 

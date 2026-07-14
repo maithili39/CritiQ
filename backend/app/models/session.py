@@ -1,14 +1,15 @@
-from sqlalchemy import Column, String, Text, DateTime, Enum, ForeignKey, Integer, Float, Boolean, Index
-from sqlalchemy.orm import relationship
-from datetime import datetime, timezone
+import enum
 import secrets
 import uuid
-import enum
+from datetime import UTC, datetime
+
+from sqlalchemy import Boolean, Column, DateTime, Enum, Float, ForeignKey, Index, Integer, String, Text
+from sqlalchemy.orm import relationship
 
 from app.core.database import Base
 
 
-class SessionStatus(str, enum.Enum):
+class SessionStatus(enum.StrEnum):
     created = "created"
     active = "active"
     completed = "completed"
@@ -32,7 +33,7 @@ class InterviewSession(Base):
     resume_parsed = Column(Text, nullable=True)  # JSON: skills, tech, experience_level
     status = Column(Enum(SessionStatus), default=SessionStatus.created)
     current_question_index = Column(Integer, default=0)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=lambda: datetime.now(UTC))
     completed_at = Column(DateTime, nullable=True)
 
     # Candidate-flow answer submission runs scoring + next-question generation (or
@@ -63,7 +64,7 @@ class Question(Base):
     difficulty = Column(String(50), nullable=True)  # beginner / intermediate / advanced
     source_context = Column(Text, nullable=True)    # retrieved RAG chunks used
     order = Column(Integer, nullable=False)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=lambda: datetime.now(UTC))
 
     session = relationship("InterviewSession", back_populates="questions")
     answer = relationship("Answer", back_populates="question", uselist=False, cascade="all, delete-orphan")
@@ -77,7 +78,7 @@ class Answer(Base):
     text = Column(Text, nullable=False)
     score = Column(Float, nullable=True)          # 0-10, evaluated by LLM
     score_rationale = Column(Text, nullable=True)
-    submitted_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    submitted_at = Column(DateTime, default=lambda: datetime.now(UTC))
 
     question = relationship("Question", back_populates="answer")
 
@@ -93,6 +94,6 @@ class Report(Base):
     strengths = Column(Text, nullable=True)
     gaps = Column(Text, nullable=True)
     recommendation = Column(String(50), nullable=True)  # strong_yes / yes / maybe / no
-    generated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    generated_at = Column(DateTime, default=lambda: datetime.now(UTC))
 
     session = relationship("InterviewSession", back_populates="report")

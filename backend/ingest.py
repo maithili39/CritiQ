@@ -10,7 +10,6 @@ Usage:
 
 import argparse
 import logging
-import sys
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s — %(message)s")
 
@@ -21,7 +20,7 @@ ROLES = ["ai_ml", "data_science"]
 
 def main():
     parser = argparse.ArgumentParser(description="Ingest knowledge base PDFs into ChromaDB.")
-    parser.add_argument("--role", required=True, choices=ROLES + ["all"])
+    parser.add_argument("--role", required=True, choices=[*ROLES, "all"])
     parser.add_argument("--force", action="store_true", help="Force re-ingestion even if already done")
     args = parser.parse_args()
 

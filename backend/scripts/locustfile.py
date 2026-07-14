@@ -21,7 +21,7 @@ import io
 import random
 import uuid
 
-from locust import HttpUser, task, between
+from locust import HttpUser, between, task
 
 # A tiny valid PDF (just the magic bytes + minimal structure) so the backend's
 # PDF validation passes without needing a real resume file checked into the repo.

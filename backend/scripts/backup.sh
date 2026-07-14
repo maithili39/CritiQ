@@ -22,7 +22,8 @@ OUT_DIR="backups/${TIMESTAMP}"
 mkdir -p "${OUT_DIR}"
 
 echo "==> Dumping Postgres database..."
-pg_dump --dbname="${DATABASE_URL}" --format=custom --file="${OUT_DIR}/screening.dump"
+PG_URL="${DATABASE_URL/postgresql+psycopg:/postgresql:}"
+pg_dump --dbname="${PG_URL}" --format=custom --file="${OUT_DIR}/screening.dump"
 
 echo "==> Archiving ChromaDB persistence dir..."
 if [ -d "data/chroma" ]; then

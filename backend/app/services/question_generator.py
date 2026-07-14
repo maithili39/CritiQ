@@ -15,7 +15,6 @@ Design:
 """
 
 import logging
-from typing import Dict, List, Optional
 
 from app.core.config import settings
 from app.rag.retriever import retrieve_for_question_generation
@@ -95,11 +94,11 @@ _GENERATE_REPORT_TOOL = {
 
 def generate_question(
     role: str,
-    parsed_resume: Dict,
-    previous_questions: List[str],
-    previous_answer: Optional[str] = None,
+    parsed_resume: dict,
+    previous_questions: list[str],
+    previous_answer: str | None = None,
     question_number: int = 1,
-) -> Dict:
+) -> dict:
     """
     Generates the next interview question grounded in RAG context.
 
@@ -192,7 +191,7 @@ Generate question #{question_number}."""
     return result
 
 
-def evaluate_answer(question: str, answer: str, context: str, experience_level: str) -> Dict:
+def evaluate_answer(question: str, answer: str, context: str, experience_level: str) -> dict:
     """
     Evaluates a candidate's answer using Claude.
     Returns {score: float (0-10), rationale: str, strengths: str, gaps: str}
@@ -222,7 +221,7 @@ Candidate level: {experience_level}"""
     )
 
 
-def generate_report(session_data: Dict) -> Dict:
+def generate_report(session_data: dict) -> dict:
     """
     Generates the final session report with insights and recommendation.
     """
@@ -272,12 +271,12 @@ Interview transcript:
         }
 
 
-def _extract_topics_from_questions(questions: List[str]) -> List[str]:
+def _extract_topics_from_questions(questions: list[str]) -> list[str]:
     """Naive topic extraction from question text for de-duplication."""
     return questions  # The retriever uses these as negative signals via the prompt
 
 
-def _determine_focus(previous_answer: Optional[str], previous_topics: List[str], question_number: int) -> str:
+def _determine_focus(previous_answer: str | None, previous_topics: list[str], question_number: int) -> str:
     """Determines focus area for retrieval based on session progress."""
     if question_number <= 2:
         return ""

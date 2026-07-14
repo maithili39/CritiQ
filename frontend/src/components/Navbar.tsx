@@ -28,11 +28,9 @@ export default function Navbar() {
         <Brand />
 
         <nav className="hidden md:flex items-center gap-1">
-          <Link to="/" className="nav-link">Home</Link>
           {isAuthenticated && (
             <Link to="/sessions" className="nav-link">My Sessions</Link>
           )}
-          <Link to="/interview/setup" className="nav-link">Start Interview</Link>
         </nav>
 
         <div className="hidden md:flex items-center gap-4">
@@ -71,17 +69,11 @@ export default function Navbar() {
 
       {open && (
         <div className="md:hidden px-6 pb-5 pt-3 flex flex-col gap-1 fade-in" style={{ borderTop: "1px solid #f3f4f6", background: "#fff" }}>
-          <Link to="/" className="text-[15px] py-3 px-3 rounded-lg font-medium" style={{ color: "#374151" }} onClick={() => setOpen(false)}>
-            Home
-          </Link>
           {isAuthenticated && (
             <Link to="/sessions" className="text-[15px] py-3 px-3 rounded-lg font-medium" style={{ color: "#374151" }} onClick={() => setOpen(false)}>
               My Sessions
             </Link>
           )}
-          <Link to="/interview/setup" className="text-[15px] py-3 px-3 rounded-lg font-medium" style={{ color: "#374151" }} onClick={() => setOpen(false)}>
-            Start Interview
-          </Link>
 
           {isAuthenticated ? (
             <>

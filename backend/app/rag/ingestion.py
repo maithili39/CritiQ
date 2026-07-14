@@ -11,15 +11,14 @@ Design choices:
 - Metadata (role, source, chapter, page) enables role-filtered retrieval.
 """
 
-import os
-import re
+import contextlib
 import logging
+import os
 from functools import lru_cache
 from pathlib import Path
-from typing import List, Dict
 
-import fitz  # PyMuPDF
 import chromadb
+import fitz  # PyMuPDF
 from chromadb.config import Settings as ChromaSettings
 from sentence_transformers import SentenceTransformer
 
@@ -53,7 +52,7 @@ def _get_embedding_model() -> SentenceTransformer:
     return SentenceTransformer(settings.EMBEDDING_MODEL)
 
 
-def _extract_text_from_pdf(pdf_path: str) -> List[Dict]:
+def _extract_text_from_pdf(pdf_path: str) -> list[dict]:
     """Returns list of {text, page, source} dicts."""
     doc = fitz.open(pdf_path)
     pages = []
@@ -69,14 +68,14 @@ def _extract_text_from_pdf(pdf_path: str) -> List[Dict]:
     return pages
 
 
-def _recursive_split(text: str, chunk_size: int, overlap: int) -> List[str]:
+def _recursive_split(text: str, chunk_size: int, overlap: int) -> list[str]:
     """
     Splits text recursively: paragraph → sentence → word level.
     Ensures chunks stay near chunk_size characters while respecting boundaries.
     """
     separators = ["\n\n", "\n", ". ", " ", ""]
 
-    def split_with_sep(text: str, sep: str) -> List[str]:
+    def split_with_sep(text: str, sep: str) -> list[str]:
         if not sep:
             return [text[i:i+chunk_size] for i in range(0, len(text), chunk_size - overlap)]
         parts = text.split(sep)
@@ -136,10 +135,8 @@ def ingest_role_documents(role: str, force_reingest: bool = False) -> int:
     collection_name = ROLE_COLLECTION_MAP.get(role, f"knowledge_{role}")
 
     if force_reingest:
-        try:
+        with contextlib.suppress(Exception):
             client.delete_collection(collection_name)
-        except Exception:
-            pass
 
     collection = client.get_or_create_collection(
         name=collection_name,
