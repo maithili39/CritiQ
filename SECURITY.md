@@ -55,9 +55,13 @@ cannot be exploited at runtime.
 
 #### Backend (pip) — accepted findings
 
-| GHSA ID | Package | Severity | Notes | Expiry |
-|---------|---------|----------|-------|--------|
-| *(none — pip-audit is fully blocking with no accepted findings)* | | | | |
+| GHSA ID / PYSEC ID | Package | Severity | Notes | Expiry |
+|--------------------|---------|----------|-------|--------|
+| PYSEC-2026-311     | chromadb | Unknown | Waiting on safe minor release for ChromaDB 1.5.x | 2026-12-31 |
+| PYSEC-2025-217     | transformers | Unknown | Major version bump to 5.x required; blocked by sentence-transformers | 2026-12-31 |
+| PYSEC-2026-2288    | transformers | Unknown | Major version bump to 5.x required; blocked by sentence-transformers | 2026-12-31 |
+| PYSEC-2026-2289    | transformers | Unknown | Major version bump to 5.x required; blocked by sentence-transformers | 2026-12-31 |
+| PYSEC-2026-2290    | transformers | Unknown | Major version bump to 5.x required; blocked by sentence-transformers | 2026-12-31 |
 
 ---
 
