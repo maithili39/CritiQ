@@ -22,7 +22,6 @@ session_status = sa.Enum("created", "active", "completed", name="sessionstatus",
 
 
 def upgrade() -> None:
-    session_status.create(op.get_bind(), checkfirst=True)
 
     op.create_table(
         "interview_sessions",
