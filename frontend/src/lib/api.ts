@@ -1,11 +1,6 @@
-// window.__API_BASE__ is injected at container start (docker-entrypoint.sh writes
-// /config.js from the API_BASE env var) so the same built image can be deployed to
-// different environments without a rebuild. VITE_API_URL is the build-time fallback
-// for `vite dev`/`vite build` run outside Docker.
-declare global {
-  interface Window { __API_BASE__?: string }
-}
-const API_BASE = window.__API_BASE__ || import.meta.env.VITE_API_URL || "http://localhost:8000/api";
+// VITE_API_URL is the build-time configuration for the backend API URL.
+// Ensure this is set during `docker build` (via ARG) or in Vercel's environment variables.
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000/api";
 const TOKEN_KEY = "screening_access_token";
 
 export function getAuthToken(): string | null {
@@ -34,12 +29,19 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 }
 
 export async function register(email: string, password: string) {
-  const result = await request<{ access_token: string; email: string }>("/auth/register", {
+  const result = await request<{
+    access_token?: string;
+    email: string;
+    email_verified?: boolean;
+    message?: string;
+  }>("/auth/register", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
   });
-  setAuthToken(result.access_token);
+  // access_token is omitted when FORCE_EMAIL_VERIFICATION=true — only set it
+  // if present to avoid storing "undefined" in localStorage.
+  if (result.access_token) setAuthToken(result.access_token);
   return result;
 }
 

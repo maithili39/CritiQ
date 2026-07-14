@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
-from app.core.config import settings, validate_cors_origins
+from app.core.config import settings, validate_cors_origins, startup_security_warnings
 from app.core.limiter import limiter
 from app.core.logging import configure_logging
 from app.api import auth, sessions, admin, candidate
@@ -30,6 +30,9 @@ if settings.SENTRY_DSN:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Emit actionable warnings for security misconfigs at startup so they appear
+    # in the platform's deploy logs rather than silently accumulating in prod.
+    startup_security_warnings()
     # Schema is managed by Alembic migrations (run `alembic upgrade head` before starting).
     yield
 

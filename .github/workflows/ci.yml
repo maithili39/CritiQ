@@ -6,8 +6,14 @@ on:
   pull_request:
     branches: [main]
 
+# Single Python version declaration — must match backend/Dockerfile's base image.
+# Update both together when upgrading Python.
+env:
+  PYTHON_VERSION: "3.12"
+
 jobs:
-  backend-tests:
+  backend-lint:
+    name: Backend lint (ruff)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -17,7 +23,31 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: backend/requirements*.txt
+
+      - name: Install dev dependencies
+        run: pip install -r requirements-dev.txt
+
+      - name: Lint with ruff
+        run: ruff check .
+
+      - name: Check formatting with ruff
+        run: ruff format --check .
+
+  backend-tests:
+    name: Backend tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
           cache-dependency-path: backend/requirements*.txt
 
@@ -30,6 +60,7 @@ jobs:
         run: pytest --cov=app --cov-report=term-missing
 
   backup-restore-drill:
+    name: Backup / restore drill
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -60,7 +91,7 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
           cache-dependency-path: backend/requirements*.txt
 
@@ -76,22 +107,23 @@ jobs:
           ./scripts/backup_restore_drill.sh
 
   dependency-audit:
+    name: Dependency audit
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
           cache-dependency-path: backend/requirements*.txt
 
       - name: Audit backend dependencies (pip-audit)
-        # Reports known CVEs in requirements.txt. continue-on-error for now: a first
-        # run can surface pre-existing transitive-dependency vulnerabilities that
-        # need triage, not an immediate hard fail blocking unrelated PRs. Tighten to
-        # blocking once the backlog it finds is clean.
-        continue-on-error: true
+        # Blocking: pip-audit fails the job on any known CVE with an available fix.
+        # To accept a finding with no fix yet, add it to the ignore list here AND
+        # document it in SECURITY.md (Accepted / Deferred Findings table) with a
+        # review-by date. Example:
+        #   pip-audit -r backend/requirements.txt --ignore-vuln GHSA-xxxx-yyyy-zzzz
         run: |
           pip install pip-audit
           pip-audit -r backend/requirements.txt
@@ -103,13 +135,37 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
 
       - name: Audit frontend dependencies (npm audit)
-        continue-on-error: true
+        # Blocking at the "high" severity threshold — critical/high CVEs in frontend
+        # deps fail the job. Moderate/low are still reported but non-blocking.
         working-directory: frontend
         run: |
           npm ci
           npm audit --audit-level=high
 
+  frontend-lint:
+    name: Frontend lint (eslint)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint with ESLint
+        # --max-warnings 0 promotes every warning to a failure so nothing slips through.
+        run: npm run lint
+
   frontend-tests:
+    name: Frontend tests
     runs-on: ubuntu-latest
     defaults:
       run:

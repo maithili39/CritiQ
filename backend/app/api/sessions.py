@@ -9,6 +9,7 @@ from typing import Optional
 
 from app.core.database import get_db
 from app.core.limiter import limiter
+from app.core.roles import ALLOWED_ROLES, ROLE_LABELS
 from app.models.session import InterviewSession, SessionStatus
 from app.models.user import User
 from app.api.deps import get_current_user
@@ -20,8 +21,6 @@ from app.core.config import settings
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/sessions", tags=["sessions"])
 
-ALLOWED_ROLES = {"ai_ml", "data_science"}
-ROLE_LABELS = {"ai_ml": "AI / ML Engineer", "data_science": "Data Scientist"}
 MAX_NAME_LENGTH = 200
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 PDF_MAGIC = b"%PDF-"

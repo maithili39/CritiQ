@@ -3,10 +3,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 from app.api.deps import require_admin_api_key
 from app.rag.ingestion import ingest_role_documents, get_collection
+from app.core.roles import ROLES
 
 router = APIRouter(prefix="/admin", tags=["admin"], dependencies=[Depends(require_admin_api_key)])
-
-ROLES = ["ai_ml", "data_science"]
 
 
 @router.post("/ingest/{role}")

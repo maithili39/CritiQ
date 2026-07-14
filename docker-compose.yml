@@ -36,8 +36,8 @@ services:
     env_file:
       - ./backend/.env
     environment:
-      - DATABASE_URL=postgresql+psycopg://screening:screening@postgres:5432/screening
-      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=${DATABASE_URL:-postgresql+psycopg://screening:screening@postgres:5432/screening}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
     volumes:
       - ./backend/data:/app/data
       - ./backend/knowledge_base:/app/knowledge_base
@@ -52,8 +52,8 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    environment:
-      - API_BASE=http://localhost:8000/api
+      args:
+        - VITE_API_URL=${VITE_API_URL:-http://localhost:8000/api}
     ports:
       - "3000:3000"
     depends_on:
@@ -65,7 +65,7 @@ services:
       context: ./backend
       dockerfile: scripts/backup-cron/Dockerfile
     environment:
-      - DATABASE_URL=postgresql+psycopg://screening:screening@postgres:5432/screening
+      - DATABASE_URL=${DATABASE_URL:-postgresql+psycopg://screening:screening@postgres:5432/screening}
     volumes:
       - ./backend/data:/app/data
       - ./backend/backups:/app/backups

@@ -1,5 +1,6 @@
 """Shared FastAPI dependencies for authenticated routes."""
 
+import hashlib
 import secrets
 
 from fastapi import Depends, Header, HTTPException
@@ -50,8 +51,35 @@ def get_session_by_access_token(
 def require_admin_api_key(
     admin_api_key: str = Header(default="", alias="X-Admin-API-Key"),
 ) -> None:
-    if not settings.ADMIN_API_KEY:
+    """
+    Validates the incoming X-Admin-API-Key header in constant time.
+
+    Two storage modes — ADMIN_API_KEY_HASH takes precedence:
+
+      ADMIN_API_KEY_HASH (preferred):
+        Store only the SHA-256 hex-digest of your chosen key. The raw key never
+        enters the running process. To rotate: pick a new key, hash it, update the
+        env var (no code change, no deploy needed beyond restarting the service).
+        Generate:  echo -n 'myrawkey' | sha256sum
+
+      ADMIN_API_KEY (legacy):
+        The plaintext key lives in the env var. Works fine for simple setups, but
+        means the raw secret is visible in process env dumps / platform dashboards.
+
+    If neither is set the endpoint returns 503 (disabled), not 403.
+    """
+    has_hash = bool(settings.ADMIN_API_KEY_HASH)
+    has_plain = bool(settings.ADMIN_API_KEY)
+
+    if not has_hash and not has_plain:
         raise HTTPException(503, "Admin endpoints are disabled until ADMIN_API_KEY is configured.")
 
-    if not secrets.compare_digest(admin_api_key, settings.ADMIN_API_KEY):
-        raise HTTPException(403, "Invalid admin API key.")
+    if has_hash:
+        # Hash the incoming key and compare digests — constant-time, raw key never stored.
+        incoming_hash = hashlib.sha256(admin_api_key.encode("utf-8")).hexdigest()
+        if not secrets.compare_digest(incoming_hash, settings.ADMIN_API_KEY_HASH):
+            raise HTTPException(403, "Invalid admin API key.")
+    else:
+        # Legacy plaintext comparison — still constant-time via secrets.compare_digest.
+        if not secrets.compare_digest(admin_api_key, settings.ADMIN_API_KEY):
+            raise HTTPException(403, "Invalid admin API key.")

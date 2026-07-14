@@ -132,10 +132,14 @@ def complete_candidate_session(
     """
     Finalize the interview. In the normal flow, the background task from the last
     answer already auto-completes the session (see process_answer_in_background),
-    so this is a fallback/no-op in that case rather than a required step - calling
-    complete_session again would generate a second Report row for the same session.
+    so this is a fallback/no-op in that case rather than a required step.
+
+    Guard against duplicate report rows: check both the session status *and*
+    whether a report already exists. The background task may have already written
+    the report while the status transition was still in-flight, so relying on
+    status alone is not sufficient.
     """
-    if session.status == SessionStatus.completed:
+    if session.status == SessionStatus.completed or session.report:
         return {"message": "Thanks — your responses have been submitted for review."}
 
     try:

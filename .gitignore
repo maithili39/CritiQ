@@ -14,7 +14,8 @@ htmlcov/
 # Node
 frontend/node_modules/
 frontend/dist/
-frontend/.env
+frontend/.env*
+!frontend/.env.example
 frontend/*.tsbuildinfo
 
 # Misc
@@ -23,3 +24,6 @@ frontend/*.tsbuildinfo
 
 # Claude Code local settings (per-machine tool permissions, not project config)
 .claude/
+
+# Local overrides
+docker-compose.override.yml

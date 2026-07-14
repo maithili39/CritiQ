@@ -186,6 +186,34 @@ docker-compose up --build
 Spins up Postgres, Redis, the backend (auto-runs migrations + knowledge base ingestion on
 start), and the frontend together.
 
+## Deployment (Render)
+
+This repository includes a `render.yaml` Blueprint for deploying the backend API to Render.
+
+**What the blueprint provisions:**
+The blueprint automatically provisions the full stack required to run the backend:
+1. **PostgreSQL database** (free tier)
+2. **Redis instance** (free tier) for rate limiting
+3. **Backend web service** (starter plan, ~$7/mo) with a persistent disk attached for ChromaDB
+
+**Why the backend requires the Starter plan:**
+Render's free tier does not support persistent disks. Without a persistent disk, ChromaDB's
+vector store would live on an ephemeral filesystem, forcing the application to re-ingest
+all PDFs from scratch on every single cold start (adding 30-60s of startup latency) and
+losing the vector index every time the container sleeps.
+
+**Steps to deploy:**
+1. Fork or clone this repository to your GitHub account.
+2. In the Render dashboard, go to **Blueprints** → **New Blueprint Instance**.
+3. Select your repository.
+4. Render will prompt you for the required environment variables (e.g., `ANTHROPIC_API_KEY`, `JWT_SECRET`, `ADMIN_API_KEY_HASH`).
+5. Click **Apply**. Render will stand up the database, Redis, and backend service, and automatically wire their connection strings together.
+
+**Deploying the frontend:**
+The frontend should be deployed separately to a static hosting provider like Vercel or Netlify.
+Set the `VITE_API_URL` environment variable in your frontend hosting dashboard to point to
+your deployed Render backend URL (e.g., `https://critiq-backend.onrender.com/api`).
+
 ## Key design decisions
 
 - **RAG grounding, not hallucinated questions** — every question is generated from chunks

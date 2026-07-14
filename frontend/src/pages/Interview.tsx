@@ -63,7 +63,17 @@ export default function InterviewPage() {
 
       if (res.is_complete || !res.next_question) {
         setIsComplete(true);
-        await completeSession(sessionId);
+        // Complete the session BEFORE navigating so the report exists when the
+        // Report page fetches it. Previously navigate() fired while completeSession
+        // was still in-flight, causing the report page to load with no data.
+        try {
+          await completeSession(sessionId);
+        } catch (completeErr: unknown) {
+          // If completeSession fails the report may still be generated server-side
+          // (e.g., via the candidate background-task path). Navigate anyway; the
+          // Report page re-fetches via getSession and will show the report if ready.
+          console.error("completeSession failed:", completeErr);
+        }
         navigate(`/interview/${sessionId}/report`);
       } else {
         setTimeout(() => {

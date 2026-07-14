@@ -15,11 +15,7 @@
   </head>
   <body>
     <div id="root"></div>
-    <!-- Injected at container start (see Dockerfile/docker-entrypoint.sh), not at build
-         time, so one built image can be deployed to different environments (staging,
-         prod) just by changing the API_BASE env var — no rebuild required. Falls back
-         to same-origin /api if the container didn't generate this file (e.g. `vite dev`). -->
-    <script src="/config.js"></script>
+
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

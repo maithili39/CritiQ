@@ -279,8 +279,17 @@ def submit_answer_and_advance(
 def complete_session(db: DBSession, session_id: str) -> Report:
     """
     Marks session complete and generates the final report.
+
+    Idempotent: if a Report row already exists for this session it is returned
+    immediately without generating a second one. This prevents duplicate Report
+    rows when the endpoint is called more than once (e.g. double-click, retry,
+    or the recruiter calling /complete after the candidate background-task path
+    already auto-completed the session).
     """
     session = _get_session(db, session_id)
+    if session.report:
+        # Already completed — return the existing report without touching the DB.
+        return session.report
     report = _build_and_store_report(db, session)
     db.commit()
     db.refresh(report)
@@ -328,7 +337,12 @@ def process_answer_in_background(session_id: str, question_id: str, answer_text:
     try:
         session = _get_session(db, session_id)
         question = db.query(Question).filter_by(id=question_id, session_id=session_id).first()
-        answer = db.query(Answer).filter_by(question_id=question_id).first()
+        # Filter on score IS NULL to unambiguously target the pending answer created
+        # by submit_answer_pending. Filtering by question_id alone could pick up a
+        # stale scored answer if the question were somehow re-answered (race/bug).
+        answer = db.query(Answer).filter_by(question_id=question_id).filter(
+            Answer.score.is_(None)
+        ).first()
         if not question or not answer:
             return
 
