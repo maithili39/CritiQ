@@ -34,11 +34,11 @@ ROLE_PERSONAS = {
 }
 
 QUESTION_TYPES = [
-    "conceptual",       # explain a concept
-    "applied",          # how would you use X in practice
-    "scenario",         # given this situation, what would you do
-    "debugging",        # why might X fail / what could go wrong
-    "design",           # how would you design/build X
+    "conceptual",  # explain a concept
+    "applied",  # how would you use X in practice
+    "scenario",  # given this situation, what would you do
+    "debugging",  # why might X fail / what could go wrong
+    "design",  # how would you design/build X
 ]
 
 _GENERATE_QUESTION_TOOL = {
@@ -48,7 +48,10 @@ _GENERATE_QUESTION_TOOL = {
         "type": "object",
         "properties": {
             "text": {"type": "string", "description": "The interview question to ask."},
-            "topic": {"type": "string", "description": "Main topic being tested, e.g. 'Gradient Descent', 'Overfitting'."},
+            "topic": {
+                "type": "string",
+                "description": "Main topic being tested, e.g. 'Gradient Descent', 'Overfitting'.",
+            },
             "rationale": {"type": "string", "description": "1 sentence: why this question for this candidate."},
         },
         "required": ["text", "topic", "rationale"],
@@ -239,8 +242,10 @@ def generate_report(session_data: dict) -> dict:
     scores = [p["score"] for p in qa_pairs if p.get("score") is not None]
     avg_score = round(sum(scores) / len(scores), 1) if scores else 0
 
-    system = "You are generating a hiring assessment report. Base the recommendation on: " \
-             "strong_yes (8+), yes (6.5-8), maybe (5-6.5), no (<5)."
+    system = (
+        "You are generating a hiring assessment report. Base the recommendation on: "
+        "strong_yes (8+), yes (6.5-8), maybe (5-6.5), no (<5)."
+    )
 
     user_content = f"""Candidate: {candidate.get("name", "Candidate")}
 Role: {role.replace("_", " ").title()}

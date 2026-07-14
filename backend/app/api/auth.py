@@ -64,7 +64,9 @@ def _validate_password(password: str) -> None:
 def _issue_email_verification_token(user: User) -> str:
     token = generate_urlsafe_token()
     user.email_verification_token_hash = hash_token(token)
-    user.email_verification_token_expires_at = _utcnow() + timedelta(hours=settings.EMAIL_VERIFICATION_TOKEN_EXPIRE_HOURS)
+    user.email_verification_token_expires_at = _utcnow() + timedelta(
+        hours=settings.EMAIL_VERIFICATION_TOKEN_EXPIRE_HOURS
+    )
     return token
 
 
@@ -194,13 +196,17 @@ def confirm_password_reset(request: Request, payload: TokenPasswordPayload, db: 
     token_hash = hash_token(payload.token.strip())
     now = _utcnow()
 
-    user = db.query(User).filter(
-        and_(
-            User.password_reset_token_hash == token_hash,
-            User.password_reset_token_expires_at.is_not(None),
-            User.password_reset_token_expires_at > now,
+    user = (
+        db.query(User)
+        .filter(
+            and_(
+                User.password_reset_token_hash == token_hash,
+                User.password_reset_token_expires_at.is_not(None),
+                User.password_reset_token_expires_at > now,
+            )
         )
-    ).first()
+        .first()
+    )
     if not user:
         raise HTTPException(400, "Invalid or expired password reset token.")
 
@@ -236,13 +242,17 @@ def confirm_email_verification(request: Request, payload: TokenOnlyPayload, db: 
     token_hash = hash_token(payload.token.strip())
     now = _utcnow()
 
-    user = db.query(User).filter(
-        and_(
-            User.email_verification_token_hash == token_hash,
-            User.email_verification_token_expires_at.is_not(None),
-            User.email_verification_token_expires_at > now,
+    user = (
+        db.query(User)
+        .filter(
+            and_(
+                User.email_verification_token_hash == token_hash,
+                User.email_verification_token_expires_at.is_not(None),
+                User.email_verification_token_expires_at > now,
+            )
         )
-    ).first()
+        .first()
+    )
     if not user:
         raise HTTPException(400, "Invalid or expired email verification token.")
 

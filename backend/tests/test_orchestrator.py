@@ -116,7 +116,9 @@ def test_submit_answer_and_advance_completes_on_last_question(db_session, user, 
     assert is_complete is True
 
 
-def test_submit_answer_and_advance_still_scores_if_next_question_generation_fails(db_session, user, mock_ai, monkeypatch):
+def test_submit_answer_and_advance_still_scores_if_next_question_generation_fails(
+    db_session, user, mock_ai, monkeypatch
+):
     """A next-question generation failure must not cost the candidate their score for
     the answer they already submitted — the two Claude calls are independent."""
     session = orchestrator.create_session(

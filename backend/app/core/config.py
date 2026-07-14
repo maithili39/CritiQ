@@ -152,6 +152,7 @@ def validate_cors_origins(origins: list[str], debug: bool) -> None:
         return
     if debug:
         import logging
+
         logging.getLogger(__name__).warning(
             "ALLOWED_ORIGINS includes '*' - CORS is effectively disabled (any origin allowed)."
         )

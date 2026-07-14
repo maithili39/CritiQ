@@ -5,6 +5,7 @@ Revises: 62c045179476
 Create Date: 2026-07-02 11:30:39.003576
 
 """
+
 from collections.abc import Sequence
 
 import sqlalchemy as sa
@@ -12,8 +13,8 @@ import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = '2372897d521a'
-down_revision: str | None = '62c045179476'
+revision: str = "2372897d521a"
+down_revision: str | None = "62c045179476"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
@@ -33,9 +34,7 @@ def upgrade() -> None:
 
     op.add_column("interview_sessions", sa.Column("user_id", sa.String(), nullable=True))
     op.create_index("ix_interview_sessions_user_id", "interview_sessions", ["user_id"])
-    op.create_foreign_key(
-        "fk_interview_sessions_user_id", "interview_sessions", "users", ["user_id"], ["id"]
-    )
+    op.create_foreign_key("fk_interview_sessions_user_id", "interview_sessions", "users", ["user_id"], ["id"])
     # No existing rows to backfill against yet (unreleased project) — safe to enforce now.
     op.alter_column("interview_sessions", "user_id", nullable=False)
 

@@ -22,7 +22,7 @@ _client = None
 
 # Errors worth retrying: the request was fine, the service was momentarily unavailable.
 _RETRYABLE = (
-    anthropic.APIStatusError,      # includes 429 / 529 (overloaded); filtered by status below
+    anthropic.APIStatusError,  # includes 429 / 529 (overloaded); filtered by status below
     anthropic.APIConnectionError,  # network blip / DNS / connection reset
     anthropic.APITimeoutError,
 )
@@ -60,7 +60,10 @@ def create_message(**kwargs):
             delay = BASE_DELAY_SECONDS * (2 ** (attempt - 1))
             logger.warning(
                 "Claude call failed (attempt %d/%d): %s — retrying in %.1fs",
-                attempt, MAX_RETRIES, exc, delay,
+                attempt,
+                MAX_RETRIES,
+                exc,
+                delay,
             )
             time.sleep(delay)
 
@@ -86,11 +89,13 @@ def call_tool(
     each session calls generate_question/evaluate_answer ~8 times with identical
     system content, so caching it cuts repeated input-token cost after the first call.
     """
-    system_param = [{
-        "type": "text",
-        "text": system,
-        **({"cache_control": {"type": "ephemeral"}} if cache_system else {}),
-    }]
+    system_param = [
+        {
+            "type": "text",
+            "text": system,
+            **({"cache_control": {"type": "ephemeral"}} if cache_system else {}),
+        }
+    ]
 
     # Per-call timing so it's visible *which stage* of an interview is slow (resume
     # parsing vs question generation vs answer evaluation vs report generation) -

@@ -62,7 +62,7 @@ class Question(Base):
     text = Column(Text, nullable=False)
     topic = Column(String(200), nullable=True)
     difficulty = Column(String(50), nullable=True)  # beginner / intermediate / advanced
-    source_context = Column(Text, nullable=True)    # retrieved RAG chunks used
+    source_context = Column(Text, nullable=True)  # retrieved RAG chunks used
     order = Column(Integer, nullable=False)
     created_at = Column(DateTime, default=lambda: datetime.now(UTC))
 
@@ -76,7 +76,7 @@ class Answer(Base):
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     question_id = Column(String, ForeignKey("questions.id"), nullable=False, index=True)
     text = Column(Text, nullable=False)
-    score = Column(Float, nullable=True)          # 0-10, evaluated by LLM
+    score = Column(Float, nullable=True)  # 0-10, evaluated by LLM
     score_rationale = Column(Text, nullable=True)
     submitted_at = Column(DateTime, default=lambda: datetime.now(UTC))
 
@@ -90,7 +90,7 @@ class Report(Base):
     session_id = Column(String, ForeignKey("interview_sessions.id"), nullable=False, index=True)
     summary = Column(Text, nullable=True)
     overall_score = Column(Float, nullable=True)
-    topic_coverage = Column(Text, nullable=True)   # JSON: {topic: score}
+    topic_coverage = Column(Text, nullable=True)  # JSON: {topic: score}
     strengths = Column(Text, nullable=True)
     gaps = Column(Text, nullable=True)
     recommendation = Column(String(50), nullable=True)  # strong_yes / yes / maybe / no

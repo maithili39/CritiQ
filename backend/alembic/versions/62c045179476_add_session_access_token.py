@@ -5,6 +5,7 @@ Revises: 17d49a43973a
 Create Date: 2026-07-02 11:09:51.074988
 
 """
+
 import secrets
 from collections.abc import Sequence
 
@@ -13,8 +14,8 @@ import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = '62c045179476'
-down_revision: str | None = '17d49a43973a'
+revision: str = "62c045179476"
+down_revision: str | None = "17d49a43973a"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

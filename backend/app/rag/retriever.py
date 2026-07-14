@@ -5,8 +5,6 @@ Constructs dynamic queries from resume + role, retrieves top-k chunks
 from ChromaDB using cosine similarity, and filters by relevance threshold.
 """
 
-
-
 from app.core.config import settings
 from app.rag.ingestion import _get_embedding_model, get_collection
 
@@ -62,17 +60,20 @@ def retrieve_context(
     for doc, meta, dist in zip(
         results["documents"][0],
         results["metadatas"][0],
-        results["distances"][0], strict=False,
+        results["distances"][0],
+        strict=False,
     ):
         # ChromaDB cosine distance: 0=identical, 2=opposite. Convert to similarity.
         similarity = 1 - (dist / 2)
         if similarity >= min_score:
-            chunks.append({
-                "text": doc,
-                "source": meta.get("source", ""),
-                "page": meta.get("page", 0),
-                "score": round(similarity, 4),
-            })
+            chunks.append(
+                {
+                    "text": doc,
+                    "source": meta.get("source", ""),
+                    "page": meta.get("page", 0),
+                    "score": round(similarity, 4),
+                }
+            )
 
     # Sort by score descending, return top_k
     chunks.sort(key=lambda x: x["score"], reverse=True)

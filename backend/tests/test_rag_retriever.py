@@ -52,9 +52,9 @@ def test_retrieve_context_filters_out_low_similarity_chunks(monkeypatch):
     # should keep only the first two.
     fake_collection = _make_fake_collection(distances=[0.0, 0.6, 1.9])
     monkeypatch.setattr(retriever, "get_collection", lambda role: fake_collection)
-    monkeypatch.setattr(retriever, "_get_embedding_model", lambda: MagicMock(
-        encode=lambda texts: np.array([[0.1, 0.2, 0.3]])
-    ))
+    monkeypatch.setattr(
+        retriever, "_get_embedding_model", lambda: MagicMock(encode=lambda texts: np.array([[0.1, 0.2, 0.3]]))
+    )
 
     results = retriever.retrieve_context(role="ai_ml", skills=["PyTorch"], topics=[], min_score=0.25)
 
@@ -66,9 +66,9 @@ def test_retrieve_context_sorts_by_score_descending(monkeypatch):
     # Distances out of order on purpose: middle one is actually the most similar.
     fake_collection = _make_fake_collection(distances=[0.8, 0.1, 0.5])
     monkeypatch.setattr(retriever, "get_collection", lambda role: fake_collection)
-    monkeypatch.setattr(retriever, "_get_embedding_model", lambda: MagicMock(
-        encode=lambda texts: np.array([[0.1, 0.2, 0.3]])
-    ))
+    monkeypatch.setattr(
+        retriever, "_get_embedding_model", lambda: MagicMock(encode=lambda texts: np.array([[0.1, 0.2, 0.3]]))
+    )
 
     results = retriever.retrieve_context(role="ai_ml", skills=["PyTorch"], topics=[], min_score=0.0)
 
@@ -79,9 +79,9 @@ def test_retrieve_context_sorts_by_score_descending(monkeypatch):
 def test_retrieve_context_respects_top_k(monkeypatch):
     fake_collection = _make_fake_collection(distances=[0.0, 0.1, 0.2, 0.3, 0.4])
     monkeypatch.setattr(retriever, "get_collection", lambda role: fake_collection)
-    monkeypatch.setattr(retriever, "_get_embedding_model", lambda: MagicMock(
-        encode=lambda texts: np.array([[0.1, 0.2, 0.3]])
-    ))
+    monkeypatch.setattr(
+        retriever, "_get_embedding_model", lambda: MagicMock(encode=lambda texts: np.array([[0.1, 0.2, 0.3]]))
+    )
 
     results = retriever.retrieve_context(role="ai_ml", skills=["PyTorch"], topics=[], top_k=2, min_score=0.0)
 
@@ -103,9 +103,9 @@ def test_retrieve_context_returns_empty_for_empty_collection(monkeypatch):
 def test_retrieve_for_question_generation_excludes_previous_topics(monkeypatch):
     fake_collection = _make_fake_collection(distances=[0.0])
     monkeypatch.setattr(retriever, "get_collection", lambda role: fake_collection)
-    monkeypatch.setattr(retriever, "_get_embedding_model", lambda: MagicMock(
-        encode=lambda texts: np.array([[0.1, 0.2, 0.3]])
-    ))
+    monkeypatch.setattr(
+        retriever, "_get_embedding_model", lambda: MagicMock(encode=lambda texts: np.array([[0.1, 0.2, 0.3]]))
+    )
 
     result = retriever.retrieve_for_question_generation(
         role="ai_ml",

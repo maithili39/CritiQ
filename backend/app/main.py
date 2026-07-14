@@ -71,9 +71,7 @@ async def add_security_headers(request: Request, call_next):
     if request.url.path not in _CSP_EXEMPT_PATHS:
         response.headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'"
     if settings.SECURITY_HSTS_SECONDS > 0:
-        response.headers["Strict-Transport-Security"] = (
-            f"max-age={settings.SECURITY_HSTS_SECONDS}; includeSubDomains"
-        )
+        response.headers["Strict-Transport-Security"] = f"max-age={settings.SECURITY_HSTS_SECONDS}; includeSubDomains"
     return response
 
 
@@ -101,6 +99,7 @@ async def log_request_timing(request: Request, call_next):
     )
     response.headers["X-Response-Time-Ms"] = str(duration_ms)
     return response
+
 
 app.include_router(auth.router, prefix="/api")
 app.include_router(sessions.router, prefix="/api")

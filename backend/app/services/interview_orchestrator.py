@@ -68,8 +68,7 @@ def list_sessions_for_user(db: DBSession, user_id: str, limit: int = 20, offset:
     total = base_query.count()
 
     sessions = (
-        base_query
-        .options(
+        base_query.options(
             load_only(
                 InterviewSession.id,
                 InterviewSession.candidate_name,
@@ -176,11 +175,13 @@ def submit_answer(
         question_id=question_id,
         text=answer_text,
         score=evaluation.get("score"),
-        score_rationale=json.dumps({
-            "rationale": evaluation.get("rationale", ""),
-            "strengths": evaluation.get("strengths", ""),
-            "gaps": evaluation.get("gaps", ""),
-        }),
+        score_rationale=json.dumps(
+            {
+                "rationale": evaluation.get("rationale", ""),
+                "strengths": evaluation.get("strengths", ""),
+                "gaps": evaluation.get("gaps", ""),
+            }
+        ),
     )
     db.add(answer)
     db.commit()
@@ -247,11 +248,13 @@ def submit_answer_and_advance(
         question_id=question_id,
         text=answer_text,
         score=evaluation.get("score"),
-        score_rationale=json.dumps({
-            "rationale": evaluation.get("rationale", ""),
-            "strengths": evaluation.get("strengths", ""),
-            "gaps": evaluation.get("gaps", ""),
-        }),
+        score_rationale=json.dumps(
+            {
+                "rationale": evaluation.get("rationale", ""),
+                "strengths": evaluation.get("strengths", ""),
+                "gaps": evaluation.get("gaps", ""),
+            }
+        ),
     )
     db.add(answer)
 
@@ -341,9 +344,7 @@ def process_answer_in_background(session_id: str, question_id: str, answer_text:
         # Filter on score IS NULL to unambiguously target the pending answer created
         # by submit_answer_pending. Filtering by question_id alone could pick up a
         # stale scored answer if the question were somehow re-answered (race/bug).
-        answer = db.query(Answer).filter_by(question_id=question_id).filter(
-            Answer.score.is_(None)
-        ).first()
+        answer = db.query(Answer).filter_by(question_id=question_id).filter(Answer.score.is_(None)).first()
         if not question or not answer:
             return
 
@@ -382,11 +383,13 @@ def process_answer_in_background(session_id: str, question_id: str, answer_text:
                     logger.exception("Failed to generate next question for session %s", session_id)
 
         answer.score = evaluation.get("score")
-        answer.score_rationale = json.dumps({
-            "rationale": evaluation.get("rationale", ""),
-            "strengths": evaluation.get("strengths", ""),
-            "gaps": evaluation.get("gaps", ""),
-        })
+        answer.score_rationale = json.dumps(
+            {
+                "rationale": evaluation.get("rationale", ""),
+                "strengths": evaluation.get("strengths", ""),
+                "gaps": evaluation.get("gaps", ""),
+            }
+        )
 
         if generated is not None:
             next_question = Question(
@@ -482,6 +485,7 @@ def get_session_summary(db: DBSession, session_id: str) -> dict:
 
 # --- Internal helpers ---
 
+
 def _get_session(db: DBSession, session_id: str) -> InterviewSession:
     session = db.query(InterviewSession).filter_by(id=session_id).first()
     if not session:
@@ -497,21 +501,25 @@ def _build_and_store_report(db: DBSession, session: InterviewSession) -> Report:
 
     qa_pairs = []
     for q in sorted(session.questions, key=lambda x: x.order):
-        qa_pairs.append({
-            "question": q.text,
-            "topic": q.topic,
-            "answer": q.answer.text if q.answer else "",
-            "score": q.answer.score if q.answer else None,
-        })
+        qa_pairs.append(
+            {
+                "question": q.text,
+                "topic": q.topic,
+                "answer": q.answer.text if q.answer else "",
+                "score": q.answer.score if q.answer else None,
+            }
+        )
 
-    report_data = generate_report({
-        "qa_pairs": qa_pairs,
-        "candidate": {
-            "name": session.candidate_name,
-            "experience_level": parsed_resume.get("experience_level", "mid"),
-        },
-        "role": session.role,
-    })
+    report_data = generate_report(
+        {
+            "qa_pairs": qa_pairs,
+            "candidate": {
+                "name": session.candidate_name,
+                "experience_level": parsed_resume.get("experience_level", "mid"),
+            },
+            "role": session.role,
+        }
+    )
 
     report = Report(
         session_id=session.id,

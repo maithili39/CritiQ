@@ -59,11 +59,13 @@ def _extract_text_from_pdf(pdf_path: str) -> list[dict]:
     for page_num, page in enumerate(doc, start=1):
         text = page.get_text("text")
         if text.strip():
-            pages.append({
-                "text": text,
-                "page": page_num,
-                "source": Path(pdf_path).name,
-            })
+            pages.append(
+                {
+                    "text": text,
+                    "page": page_num,
+                    "source": Path(pdf_path).name,
+                }
+            )
     doc.close()
     return pages
 
@@ -77,7 +79,7 @@ def _recursive_split(text: str, chunk_size: int, overlap: int) -> list[str]:
 
     def split_with_sep(text: str, sep: str) -> list[str]:
         if not sep:
-            return [text[i:i+chunk_size] for i in range(0, len(text), chunk_size - overlap)]
+            return [text[i : i + chunk_size] for i in range(0, len(text), chunk_size - overlap)]
         parts = text.split(sep)
         chunks, current = [], ""
         for part in parts:
@@ -167,10 +169,7 @@ def ingest_role_documents(role: str, force_reingest: bool = False) -> int:
 
             embeddings = model.encode(chunks, show_progress_bar=False).tolist()
 
-            ids = [
-                f"{role}_{pdf_path.stem}_p{page_data['page']}_c{i}"
-                for i in range(len(chunks))
-            ]
+            ids = [f"{role}_{pdf_path.stem}_p{page_data['page']}_c{i}" for i in range(len(chunks))]
             metadatas = [
                 {
                     "role": role,

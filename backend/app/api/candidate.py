@@ -47,8 +47,9 @@ def get_candidate_session(
     session: InterviewSession = Depends(get_session_by_access_token),
 ):
     """Candidate-safe view: invite status and the current question, nothing scored."""
-    current_question = max(session.questions, key=lambda q: q.order, default=None) \
-        if session.status != SessionStatus.created else None
+    current_question = (
+        max(session.questions, key=lambda q: q.order, default=None) if session.status != SessionStatus.created else None
+    )
 
     return {
         "session_id": session.id,
@@ -114,9 +115,7 @@ def submit_candidate_answer(
         logger.exception("Failed to submit candidate answer for session %s", session_id)
         raise HTTPException(500, "Failed to submit your answer. Please try again.")
 
-    background_tasks.add_task(
-        orchestrator.process_answer_in_background, session_id, question_id, answer_text
-    )
+    background_tasks.add_task(orchestrator.process_answer_in_background, session_id, question_id, answer_text)
     return {"status": "processing"}
 
 
