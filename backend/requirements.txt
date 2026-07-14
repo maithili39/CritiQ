@@ -5,6 +5,7 @@ python-multipart>=0.0.31
 
 # AI / LLM
 anthropic==0.40.0
+groq==1.5.0
 
 # RAG / Embeddings
 sentence-transformers==3.3.1

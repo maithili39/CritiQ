@@ -38,7 +38,12 @@ services:
       sizeGB: 1   # 3 PDFs → ~300 chunks → well under 100 MB; 1 GB is comfortable headroom
 
     envVars:
+      # LLM provider: "anthropic" (default) or "groq". Set the matching API key below.
+      - key: LLM_PROVIDER
+        sync: false
       - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: GROQ_API_KEY
         sync: false
       - key: JWT_SECRET
         sync: false

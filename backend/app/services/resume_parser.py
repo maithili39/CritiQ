@@ -69,7 +69,8 @@ def extract_text_from_pdf_bytes(pdf_bytes: bytes) -> str:
     for page in doc:
         text += page.get_text("text") + "\n"
     doc.close()
-    return text.strip()
+    # Some PDFs yield embedded NUL bytes, which Postgres text columns reject outright.
+    return text.replace("\x00", "").strip()
 
 
 def parse_resume(resume_text: str) -> dict:

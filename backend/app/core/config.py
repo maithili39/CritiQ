@@ -14,11 +14,22 @@ class Settings(BaseSettings):
     APP_NAME: str = "CritiQ"
     DEBUG: bool = False
 
-    # Anthropic
-    ANTHROPIC_API_KEY: str
+    # LLM provider: "anthropic" (default) or "groq". Whichever is selected, only
+    # that provider's API key needs to be set.
+    LLM_PROVIDER: str = "anthropic"
 
-    # Claude model
+    # Anthropic
+    ANTHROPIC_API_KEY: str = ""
     CLAUDE_MODEL: str = "claude-sonnet-5"
+
+    # Groq (OpenAI-compatible tool calling; no prompt-caching equivalent to Anthropic's
+    # cache_control, so call_tool's cache_system flag is a no-op under this provider)
+    GROQ_API_KEY: str = ""
+    GROQ_MODEL: str = "llama-3.3-70b-versatile"
+
+    @property
+    def LLM_MODEL(self) -> str:
+        return self.GROQ_MODEL if self.LLM_PROVIDER == "groq" else self.CLAUDE_MODEL
 
     # Database
     DATABASE_URL: str = "postgresql+psycopg://screening:screening@localhost:5432/screening"
