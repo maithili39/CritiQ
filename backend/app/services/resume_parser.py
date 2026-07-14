@@ -90,7 +90,7 @@ def parse_resume(resume_text: str) -> dict:
     """
     try:
         return call_tool(
-            model=settings.CLAUDE_MODEL,
+            model=settings.LLM_MODEL,
             max_tokens=1024,
             system=_SYSTEM,
             user_content=f"RESUME TEXT:\n{resume_text[:6000]}",

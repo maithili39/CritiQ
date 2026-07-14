@@ -173,7 +173,7 @@ Generate question #{question_number}."""
 
     try:
         result = call_tool(
-            model=settings.CLAUDE_MODEL,
+            model=settings.LLM_MODEL,
             max_tokens=512,
             system=system,
             user_content=user_content,
@@ -216,7 +216,7 @@ Candidate level: {experience_level}"""
     # come from a masked error. call_tool/create_message raise on failure, which
     # the caller (interview_orchestrator -> API layer) surfaces as a 500 to retry.
     return call_tool(
-        model=settings.CLAUDE_MODEL,
+        model=settings.LLM_MODEL,
         max_tokens=512,
         system=system,
         user_content=user_content,
@@ -257,7 +257,7 @@ Interview transcript:
 
     try:
         return call_tool(
-            model=settings.CLAUDE_MODEL,
+            model=settings.LLM_MODEL,
             max_tokens=800,
             system=system,
             user_content=user_content,
