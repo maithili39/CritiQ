@@ -35,11 +35,13 @@ async def lifespan(app: FastAPI):
     startup_security_warnings()
     # Schema is managed by Alembic migrations (run `alembic upgrade head` before starting).
 
-    # Fire-and-forget: runs ingestion in a worker thread so the CPU-bound embedding
-    # work doesn't block the event loop, and `yield` below happens immediately so
-    # uvicorn finishes startup and binds the port right away rather than waiting
-    # on however long ingestion takes.
-    asyncio.create_task(asyncio.to_thread(run_startup_ingest_if_empty))
+    # Runs ingestion in a worker thread so the CPU-bound embedding work doesn't
+    # block the event loop, and `yield` below happens immediately so uvicorn
+    # finishes startup and binds the port right away rather than waiting on
+    # however long ingestion takes. The reference is kept on app.state — an
+    # unreferenced task can be garbage-collected mid-execution (asyncio only
+    # holds a weak reference internally).
+    app.state.startup_ingest_task = asyncio.create_task(asyncio.to_thread(run_startup_ingest_if_empty))
     yield
 
 
