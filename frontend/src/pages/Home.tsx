@@ -65,29 +65,63 @@ export default function Home() {
       <Navbar />
 
       <section className="relative pt-10 pb-16 md:pt-16 md:pb-24 overflow-hidden">
-        
-        <div className="shell shell-wide relative z-10 flex flex-col items-center justify-center">
-          <div className="fade-up text-center flex flex-col items-center justify-center">
+        <div className="shell shell-wide relative z-10 hero-grid">
+          <div className="fade-up">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-6" style={{ background: "var(--surface-alt)", border: "1px solid var(--border-strong)" }}>
               <span className="w-2 h-2 rounded-full" style={{ background: "var(--brand)", boxShadow: "0 0 10px rgba(13,148,136,0.6)" }} />
               <span className="text-[12px] font-semibold tracking-wide uppercase" style={{ color: "var(--ink)" }}>The New Standard for Technical Hiring</span>
             </div>
-            
-            <h1 className="font-extrabold leading-[1.05] tracking-tight mb-5" style={{ fontSize: "clamp(36px, 6vw, 64px)", maxWidth: "800px", color: "var(--ink)" }}>
+
+            <h1 className="font-extrabold leading-[1.05] tracking-tight mb-5" style={{ fontSize: "clamp(36px, 5vw, 58px)", color: "var(--ink)" }}>
               AI-powered candidate screening for <span style={{ color: "var(--brand)" }}>technical teams</span>.
             </h1>
-            
-            <p className="text-[17px] md:text-[19px] leading-relaxed mb-8" style={{ maxWidth: "700px", color: "var(--muted)" }}>
+
+            <p className="text-[17px] md:text-[19px] leading-relaxed mb-8" style={{ maxWidth: "560px", color: "var(--muted)" }}>
               CritiQ instantly parses resumes, conducts adaptive technical interviews, and delivers comprehensive, scored reports to help you make confident hiring decisions.
             </p>
-            
-            <div className="flex items-center justify-center gap-4 flex-wrap fade-up delay-1">
+
+            <div className="flex items-center gap-4 flex-wrap fade-up delay-1">
               <Link to="/interview/setup" className="btn btn-primary" style={{ padding: "1rem 2.6rem", fontSize: "17px", borderRadius: "999px" }}>
                 Start a session
               </Link>
               <Link to="/register" className="btn btn-secondary" style={{ padding: "1rem 2.6rem", fontSize: "17px", borderRadius: "999px", background: "#fff" }}>
                 Create a free account
               </Link>
+            </div>
+          </div>
+
+          <div className="fade-up delay-2 relative">
+            <div className="hero-panel" style={{ padding: "0.6rem" }}>
+              <img
+                src="https://images.unsplash.com/photo-1616587226960-4a03badbe8bf?w=900&q=80&auto=format&fit=crop"
+                alt="Candidate taking a video technical interview on a laptop"
+                className="w-full h-auto"
+                style={{ borderRadius: "0.9rem", display: "block", objectFit: "cover", aspectRatio: "4 / 3" }}
+                loading="eager"
+              />
+            </div>
+            <div
+              className="card"
+              style={{
+                position: "absolute",
+                bottom: "-1.4rem",
+                left: "-1.2rem",
+                padding: "0.9rem 1.2rem",
+                display: "flex",
+                alignItems: "center",
+                gap: "0.7rem",
+                background: "#fff",
+              }}
+            >
+              <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: "var(--brand-soft)", color: "var(--brand)" }}>
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div>
+                <div className="text-[13px] font-bold" style={{ color: "var(--ink)" }}>Session scored</div>
+                <div className="text-[12px]" style={{ color: "var(--muted)" }}>Report ready in seconds</div>
+              </div>
             </div>
           </div>
         </div>
@@ -187,14 +221,25 @@ export default function Home() {
       </section>
 
       <section id="about" className="section" style={{ background: "var(--bg)" }}>
-        <div className="shell text-center">
-          <div className="eyebrow mb-4">About Us</div>
-          <h2 className="font-bold tracking-tight mb-6" style={{ fontSize: "clamp(30px, 5vw, 42px)", color: "var(--ink)", maxWidth: "800px", margin: "0 auto 1.5rem" }}>
-            We're building the future of unbiased, skills-first technical hiring.
-          </h2>
-          <p className="text-[17px] leading-relaxed muted" style={{ maxWidth: "760px", margin: "0 auto" }}>
-            CritiQ is an AI-powered screening platform designed to give engineering teams high-signal, objective candidate assessments. By automating the technical interview process with adaptive, source-grounded AI, we help you uncover true talent while eliminating scheduling bottlenecks and human bias from the first-round screening process.
-          </p>
+        <div className="shell shell-wide hero-grid" style={{ gridTemplateColumns: "1fr 1.15fr" }}>
+          <div className="fade-up">
+            <img
+              src="https://images.unsplash.com/photo-1497015455546-1da71faf8d06?w=900&q=80&auto=format&fit=crop"
+              alt="Candidate preparing for a remote technical interview"
+              className="w-full h-auto card"
+              style={{ borderRadius: "1.2rem", display: "block", objectFit: "cover", aspectRatio: "4 / 3" }}
+              loading="lazy"
+            />
+          </div>
+          <div className="fade-up delay-1">
+            <div className="eyebrow mb-4">About Us</div>
+            <h2 className="font-bold tracking-tight mb-6" style={{ fontSize: "clamp(30px, 5vw, 42px)", color: "var(--ink)" }}>
+              We're building the future of unbiased, skills-first technical hiring.
+            </h2>
+            <p className="text-[17px] leading-relaxed muted">
+              CritiQ is an AI-powered screening platform designed to give engineering teams high-signal, objective candidate assessments. By automating the technical interview process with adaptive, source-grounded AI, we help you uncover true talent while eliminating scheduling bottlenecks and human bias from the first-round screening process.
+            </p>
+          </div>
         </div>
       </section>
 

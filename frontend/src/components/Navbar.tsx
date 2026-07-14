@@ -16,9 +16,14 @@ export default function Navbar() {
   }, []);
 
   const handleLogout = () => {
+    // Navigate away from any ProtectedRoute-wrapped page *before* clearing auth
+    // state. Otherwise, if you're on a protected page, clearing auth first causes
+    // that still-mounted route to re-render and redirect itself to /login before
+    // this navigate("/") call resolves — a race ProtectedRoute usually wins,
+    // landing you on the login page instead of home.
+    navigate("/");
     logout();
     setOpen(false);
-    navigate("/");
   };
 
   return (
