@@ -17,7 +17,7 @@ down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
-session_status = sa.Enum("created", "active", "completed", name="sessionstatus")
+session_status = sa.Enum("created", "active", "completed", name="sessionstatus", create_type=False)
 
 
 def upgrade() -> None:
