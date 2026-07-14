@@ -186,7 +186,19 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="section">
+      <section id="about" className="section" style={{ background: "var(--bg)" }}>
+        <div className="shell text-center">
+          <div className="eyebrow mb-4">About Us</div>
+          <h2 className="font-bold tracking-tight mb-6" style={{ fontSize: "clamp(30px, 5vw, 42px)", color: "var(--ink)", maxWidth: "800px", margin: "0 auto 1.5rem" }}>
+            We're building the future of unbiased, skills-first technical hiring.
+          </h2>
+          <p className="text-[17px] leading-relaxed muted" style={{ maxWidth: "760px", margin: "0 auto" }}>
+            CritiQ is an AI-powered screening platform designed to give engineering teams high-signal, objective candidate assessments. By automating the technical interview process with adaptive, source-grounded AI, we help you uncover true talent while eliminating scheduling bottlenecks and human bias from the first-round screening process.
+          </p>
+        </div>
+      </section>
+
+      <section className="section section-soft">
         <div className="shell text-center">
           <h2 className="font-bold tracking-tight mb-4" style={{ fontSize: "clamp(30px, 5vw, 48px)", color: "var(--ink)" }}>
             Ready to deliver a stronger hiring experience?

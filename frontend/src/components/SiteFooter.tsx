@@ -31,6 +31,12 @@ export default function SiteFooter() {
             </ul>
           </div>
           <div className="footer-col">
+            <h4>Company</h4>
+            <ul>
+              <li><a href="/#about">About Us</a></li>
+            </ul>
+          </div>
+          <div className="footer-col">
             <h4>Account</h4>
             <ul>
               <li><Link to="/login">Log in</Link></li>

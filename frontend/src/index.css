@@ -755,7 +755,7 @@ a { color: inherit; text-decoration: none; }
 
 .stat-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
 }
 
@@ -764,6 +764,7 @@ a { color: inherit; text-decoration: none; }
   border-radius: 1rem;
   background: #fff;
   padding: 1.1rem;
+  text-align: center;
 }
 
 .stat-card strong {
