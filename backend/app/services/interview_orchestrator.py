@@ -413,10 +413,12 @@ def process_answer_in_background(session_id: str, question_id: str, answer_text:
         if answer.needs_human_review:
             reasons.append(f"score_variance_{evaluation.get('score_variance')}")
 
-        answer.integrity_flags = json.dumps({
-            "suspicious": len(reasons) > 0,
-            "reasons": reasons,
-        })
+        answer.integrity_flags = json.dumps(
+            {
+                "suspicious": len(reasons) > 0,
+                "reasons": reasons,
+            }
+        )
 
         if generated is not None:
             next_question = Question(

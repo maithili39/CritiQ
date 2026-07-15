@@ -20,6 +20,7 @@ router = APIRouter(prefix="/admin", tags=["admin"], dependencies=[Depends(requir
 # Knowledge-base ingestion
 # ---------------------------------------------------------------------------
 
+
 @router.post("/ingest/{role}")
 def ingest_knowledge_base(role: str, force: bool = False, db: DBSession = Depends(get_db)):
     """Trigger ingestion of PDFs for a given role into ChromaDB.
@@ -68,6 +69,7 @@ def knowledge_base_status(db: DBSession = Depends(get_db)):
 # ---------------------------------------------------------------------------
 # Custom role registry
 # ---------------------------------------------------------------------------
+
 
 @router.post("/roles", response_model=dict, status_code=201)
 def create_custom_role(payload: CustomRoleCreate, db: DBSession = Depends(get_db)):

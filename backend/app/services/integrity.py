@@ -64,8 +64,7 @@ def compute_session_integrity(answers: list[dict]) -> dict:
         # anomalously fast answer relative to how they answered everything else.
         if sigma > 0:
             fast_spikes = [
-                a for a in timed
-                if (mu - a["response_time_ms"]) / sigma > 1.5 and a["response_time_ms"] < 20_000
+                a for a in timed if (mu - a["response_time_ms"]) / sigma > 1.5 and a["response_time_ms"] < 20_000
             ]
             # A fast spike that ALSO scored high is the strongest single signal:
             # cheaters paste a perfect answer far faster than they wrote the others.

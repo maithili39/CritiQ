@@ -35,11 +35,10 @@ export default function SetupPage() {
     getRoles()
       .then((res) => setRoles(res.roles))
       .catch(() => {
-        // Fallback to built-in roles if fetch fails
-        setRoles([
-          { slug: "ai_ml", label: "AI / ML Engineer", description: "Machine learning, deep learning, model development and deployment", topics: ["Neural Nets", "MLOps", "Transformers", "Model Eval"], is_builtin: true },
-          { slug: "data_science", label: "Data Scientist", description: "Applied ML, statistical modeling, data analysis and visualization", topics: ["Statistics", "EDA", "Regression", "A/B Testing"], is_builtin: true },
-        ]);
+        // Surface the failure — silently substituting a stale hardcoded list hides
+        // custom roles and risks a misleading 400 if the user submits with a role
+        // the backend no longer recognises. Show an error and let them retry.
+        setError("Failed to load available roles. Please refresh the page and try again.");
       })
       .finally(() => setRolesLoading(false));
   }, []);

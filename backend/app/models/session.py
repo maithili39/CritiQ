@@ -134,13 +134,14 @@ class CustomRole(Base):
     Recruiter-defined interview role tracks beyond the built-in ai_ml / data_science defaults.
     Slug is the stable machine-readable identifier used in sessions and ChromaDB collections.
     """
+
     __tablename__ = "custom_roles"
 
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     slug = Column(String(100), nullable=False, unique=True, index=True)
-    label = Column(String(200), nullable=False)           # Human-readable display name
-    description = Column(Text, nullable=True)             # Short description shown in Setup UI
-    topics = Column(Text, nullable=True)                  # JSON array of topic tags for display
+    label = Column(String(200), nullable=False)  # Human-readable display name
+    description = Column(Text, nullable=True)  # Short description shown in Setup UI
+    topics = Column(Text, nullable=True)  # JSON array of topic tags for display
     # Interviewer persona + difficulty rubric text used to steer question generation.
     # Populated at creation (LLM-generated from label/description/topics if the
     # recruiter doesn't supply them), so custom roles drive prompting the same way

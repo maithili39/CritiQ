@@ -125,9 +125,7 @@ def submit_candidate_answer(
         logger.exception("Failed to submit candidate answer for session %s", session_id)
         raise HTTPException(500, "Failed to submit your answer. Please try again.")
 
-    background_tasks.add_task(
-        orchestrator.process_answer_in_background, session_id, question_id, answer_text
-    )
+    background_tasks.add_task(orchestrator.process_answer_in_background, session_id, question_id, answer_text)
     return {"status": "processing"}
 
 

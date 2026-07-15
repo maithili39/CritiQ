@@ -20,9 +20,7 @@ depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
-    op.add_column(
-        "answers", sa.Column("needs_human_review", sa.Boolean(), nullable=True, server_default=sa.false())
-    )
+    op.add_column("answers", sa.Column("needs_human_review", sa.Boolean(), nullable=True, server_default=sa.false()))
     op.alter_column("answers", "needs_human_review", server_default=None)
 
 

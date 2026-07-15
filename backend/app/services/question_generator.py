@@ -53,6 +53,7 @@ _GENERATE_QUESTION_TOOL = {
     },
 }
 
+
 def _build_evaluate_answer_tool(rubric: list[dict]) -> dict:
     """
     Builds the tool schema for a rubric: one required 0-10 field per dimension,
@@ -83,6 +84,7 @@ def _build_evaluate_answer_tool(rubric: list[dict]) -> dict:
             "required": [*dimension_props.keys(), "rationale", "strengths", "gaps"],
         },
     }
+
 
 _GENERATE_REPORT_TOOL = {
     "name": "generate_hiring_report",
@@ -190,21 +192,17 @@ KNOWLEDGE BASE CONTEXT (use this as the grounding source):
 
 Generate question #{question_number}."""
 
-    try:
-        result = call_tool(
-            model=settings.LLM_MODEL,
-            max_tokens=512,
-            system=system,
-            user_content=user_content,
-            tool=_GENERATE_QUESTION_TOOL,
-        )
-    except Exception:
-        logger.exception("Question generation failed; using fallback question.")
-        result = {
-            "text": "Describe a key concept relevant to this role and how you've applied it.",
-            "topic": "General",
-            "rationale": "Fallback question — the model call failed.",
-        }
+    # No silent fallback — a fake placeholder question reaching the candidate is
+    # worse than a visible error. The orchestrator's existing handler around
+    # question_future.result() logs and recovers (see process_answer_in_background
+    # and submit_answer_and_advance). Let the exception propagate there.
+    result = call_tool(
+        model=settings.LLM_MODEL,
+        max_tokens=512,
+        system=system,
+        user_content=user_content,
+        tool=_GENERATE_QUESTION_TOOL,
+    )
 
     result["difficulty"] = experience_level
     result["question_type"] = question_type
@@ -294,7 +292,9 @@ Candidate level: {experience_level}"""
     }
 
 
-def evaluate_answer_with_consistency(question: str, answer: str, context: str, experience_level: str, role: str = "") -> dict:
+def evaluate_answer_with_consistency(
+    question: str, answer: str, context: str, experience_level: str, role: str = ""
+) -> dict:
     """
     Runs two independent rubric evaluations of the same answer — same rubric,
     deliberately different grading stance/phrasing — and compares their weighted
@@ -308,12 +308,8 @@ def evaluate_answer_with_consistency(question: str, answer: str, context: str, e
     are used as the answer's recorded values.
     """
     with ThreadPoolExecutor(max_workers=2) as pool:
-        primary_future = pool.submit(
-            evaluate_answer, question, answer, context, experience_level, role, "rigorous"
-        )
-        check_future = pool.submit(
-            evaluate_answer, question, answer, context, experience_level, role, "lenient_check"
-        )
+        primary_future = pool.submit(evaluate_answer, question, answer, context, experience_level, role, "rigorous")
+        check_future = pool.submit(evaluate_answer, question, answer, context, experience_level, role, "lenient_check")
         primary = primary_future.result()
         check = check_future.result()
 

@@ -130,7 +130,9 @@ def get_role_profile(db: DBSession, role: str, experience_level: str) -> dict:
     from app.models.session import CustomRole
 
     row = db.query(CustomRole).filter_by(slug=role).first()
-    persona = (row.persona if row and row.persona else None) or f"You are a senior {role.replace('_', ' ')} conducting a technical screening interview."
+    persona = (
+        row.persona if row and row.persona else None
+    ) or f"You are a senior {role.replace('_', ' ')} conducting a technical screening interview."
 
     difficulty = BUILTIN_DIFFICULTY.get(experience_level, BUILTIN_DIFFICULTY["mid"])
     if row and row.difficulty_guide:
