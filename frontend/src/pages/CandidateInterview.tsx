@@ -34,7 +34,12 @@ async function captureWebcamSnapshot(
   const track = stream.getVideoTracks()[0];
   if (!track || track.readyState !== "live") return undefined;
 
-  const ImageCaptureClass = (window as any).ImageCapture as (new (track: MediaStreamTrack) => any) | undefined;
+  // ImageCapture is an experimental API not yet in lib.dom's type definitions.
+  interface ImageCaptureLike {
+    takePhoto(options?: { imageWidth?: number; imageHeight?: number }): Promise<Blob>;
+  }
+  const ImageCaptureClass = (window as unknown as { ImageCapture?: new (track: MediaStreamTrack) => ImageCaptureLike })
+    .ImageCapture;
   if (!ImageCaptureClass) {
     // Fallback: draw to canvas from a temporary video element
     const video = document.createElement("video");
