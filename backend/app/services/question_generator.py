@@ -275,7 +275,15 @@ Candidate level: {experience_level}"""
         tool=tool,
     )
 
-    dimension_scores = {d["key"]: result.get(d["key"], 0) for d in rubric}
+    missing = [d["key"] for d in rubric if d["key"] not in result]
+    if missing:
+        # A dimension score silently defaulting to 0 would drag the candidate's
+        # weighted score down for a provider/schema hiccup, not a real evaluation
+        # — the same failure mode the "no fake fallback score" policy above exists
+        # to prevent. Fail loudly instead so the caller retries.
+        raise ValueError(f"evaluate_answer: tool response missing required rubric dimensions: {missing}")
+
+    dimension_scores = {d["key"]: result[d["key"]] for d in rubric}
     return {
         "score": weighted_score(dimension_scores, rubric),
         "dimension_scores": dimension_scores,
