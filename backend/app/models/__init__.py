@@ -1,1 +1,1 @@
-from app.models.session import Answer, InterviewSession, Question, Report, SessionStatus
+from app.models.session import Answer, CustomRole, InterviewSession, Question, Report, SessionStatus

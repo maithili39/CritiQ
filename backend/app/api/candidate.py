@@ -100,6 +100,9 @@ def submit_candidate_answer(
     next-question generation — those run in a background task, and the frontend
     polls GET /{session_id} for is_processing to clear. This is what keeps a
     candidate from sitting on the Claude round-trip for every single answer.
+
+    Anti-cheating telemetry (response_time_ms, paste_detected, tab_switch_count,
+    camera_snapshot) is optional — missing fields are stored as NULL, not an error.
     """
     answer_text = payload.answer_text.strip()
     if not answer_text:
@@ -107,15 +110,24 @@ def submit_candidate_answer(
     if len(answer_text) > 5000:
         raise HTTPException(400, "Answer is too long (max 5000 characters).")
 
+    integrity_data = {
+        "response_time_ms": payload.response_time_ms,
+        "paste_detected": payload.paste_detected,
+        "tab_switch_count": payload.tab_switch_count,
+        "camera_snapshot": payload.camera_snapshot,
+    }
+
     try:
-        orchestrator.submit_answer_pending(db, session_id, question_id, answer_text)
+        orchestrator.submit_answer_pending(db, session_id, question_id, answer_text, integrity_data=integrity_data)
     except ValueError as e:
         raise HTTPException(409 if "already processing" in str(e) else 404, str(e))
     except Exception:
         logger.exception("Failed to submit candidate answer for session %s", session_id)
         raise HTTPException(500, "Failed to submit your answer. Please try again.")
 
-    background_tasks.add_task(orchestrator.process_answer_in_background, session_id, question_id, answer_text)
+    background_tasks.add_task(
+        orchestrator.process_answer_in_background, session_id, question_id, answer_text
+    )
     return {"status": "processing"}
 
 

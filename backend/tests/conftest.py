@@ -119,7 +119,17 @@ def mock_ai(monkeypatch):
         }
 
     def fake_evaluate_answer(**kwargs) -> dict:
-        return {"score": 8.0, "rationale": "Solid answer.", "strengths": "Clear reasoning.", "gaps": "None notable."}
+        return {
+            "score": 8.0,
+            "dimension_scores": {"correctness": 8.0, "depth": 8.0, "applied_reasoning": 8.0, "communication": 8.0},
+            "rubric_version": "v1",
+            "rationale": "Solid answer.",
+            "strengths": "Clear reasoning.",
+            "gaps": "None notable.",
+            "score_variance": 0.0,
+            "needs_human_review": False,
+            "consistency_check_score": 8.0,
+        }
 
     def fake_generate_report(_session_data: dict) -> dict:
         return {
@@ -134,7 +144,7 @@ def mock_ai(monkeypatch):
     monkeypatch.setattr(orchestrator, "extract_text_from_pdf_bytes", fake_extract_text)
     monkeypatch.setattr(orchestrator, "parse_resume", fake_parse_resume)
     monkeypatch.setattr(orchestrator, "generate_question", fake_generate_question)
-    monkeypatch.setattr(orchestrator, "evaluate_answer", fake_evaluate_answer)
+    monkeypatch.setattr(orchestrator, "evaluate_answer_with_consistency", fake_evaluate_answer)
     monkeypatch.setattr(orchestrator, "generate_report", fake_generate_report)
     return orchestrator
 

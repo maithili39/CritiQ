@@ -43,6 +43,14 @@ class InterviewSession(Base):
     is_processing = Column(Boolean, nullable=False, default=False)
     processing_error = Column(Text, nullable=True)
 
+    # --- Recruiter hiring-outcome feedback (ground truth for score calibration) ---
+    # Filled in by the recruiter AFTER a real interview/decision, so we can measure
+    # whether the AI's overall_score actually predicted good hires. One of:
+    # hired_strong / hired / rejected / no_show / null (not yet recorded).
+    outcome = Column(String(50), nullable=True)
+    outcome_note = Column(Text, nullable=True)
+    outcome_at = Column(DateTime, nullable=True)
+
     __table_args__ = (
         # Satisfies list_sessions_for_user's filter-by-user_id + order-by-created_at
         # directly from the index at scale, instead of a separate sort step.
@@ -80,6 +88,24 @@ class Answer(Base):
     score_rationale = Column(Text, nullable=True)
     submitted_at = Column(DateTime, default=lambda: datetime.now(UTC))
 
+    # --- Anti-cheating telemetry fields ---
+    # Time (ms) from question first rendered to answer submission.
+    response_time_ms = Column(Integer, nullable=True)
+    # True if the candidate used paste (Ctrl+V / right-click paste) in the answer box.
+    paste_detected = Column(Boolean, nullable=True, default=False)
+    # Number of times the candidate switched away from the tab/window during this question.
+    tab_switch_count = Column(Integer, nullable=True, default=0)
+    # JSON blob: computed integrity assessment e.g. {"suspicious": true, "reasons": ["paste_detected"]}
+    integrity_flags = Column(Text, nullable=True)
+    # Base64-encoded JPEG still from candidate's webcam captured at answer submission.
+    camera_snapshot = Column(Text, nullable=True)
+
+    # True when the two independent rubric-scoring passes (see
+    # evaluate_answer_with_consistency) disagreed by more than the variance
+    # threshold — a signal that the LLM judge itself was uncertain, not just an
+    # anti-cheating telemetry flag. Queryable directly for a recruiter review queue.
+    needs_human_review = Column(Boolean, nullable=True, default=False)
+
     question = relationship("Question", back_populates="answer")
 
 
@@ -94,6 +120,31 @@ class Report(Base):
     strengths = Column(Text, nullable=True)
     gaps = Column(Text, nullable=True)
     recommendation = Column(String(50), nullable=True)  # strong_yes / yes / maybe / no
+    # JSON: fused session-level integrity assessment computed at report time from
+    # all answers' telemetry (response-time distribution, paste/tab signals). Shape:
+    # {"confidence": 0-100, "risk_level": "low|medium|high", "signals": [...]}
+    integrity_summary = Column(Text, nullable=True)
     generated_at = Column(DateTime, default=lambda: datetime.now(UTC))
 
     session = relationship("InterviewSession", back_populates="report")
+
+
+class CustomRole(Base):
+    """
+    Recruiter-defined interview role tracks beyond the built-in ai_ml / data_science defaults.
+    Slug is the stable machine-readable identifier used in sessions and ChromaDB collections.
+    """
+    __tablename__ = "custom_roles"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    slug = Column(String(100), nullable=False, unique=True, index=True)
+    label = Column(String(200), nullable=False)           # Human-readable display name
+    description = Column(Text, nullable=True)             # Short description shown in Setup UI
+    topics = Column(Text, nullable=True)                  # JSON array of topic tags for display
+    # Interviewer persona + difficulty rubric text used to steer question generation.
+    # Populated at creation (LLM-generated from label/description/topics if the
+    # recruiter doesn't supply them), so custom roles drive prompting the same way
+    # built-in roles do instead of falling back to a generic persona string.
+    persona = Column(Text, nullable=True)
+    difficulty_guide = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(UTC))

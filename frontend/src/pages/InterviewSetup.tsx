@@ -1,28 +1,15 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { createSession, startSession, sendInvite } from "@/lib/api";
+import { createSession, startSession, sendInvite, getRoles, RoleInfo } from "@/lib/api";
 import { useInterview } from "@/context/InterviewContext";
 import Navbar from "@/components/Navbar";
 import SiteFooter from "@/components/SiteFooter";
 
-const ROLES = [
-  {
-    id: "ai_ml",
-    label: "AI / ML Engineer",
-    desc: "Machine learning, deep learning, model development and deployment",
-    topics: ["Neural Nets", "MLOps", "Transformers", "Model Eval"],
-  },
-  {
-    id: "data_science",
-    label: "Data Scientist",
-    desc: "Applied ML, statistical modeling, data analysis and visualization",
-    topics: ["Statistics", "EDA", "Regression", "A/B Testing"],
-  },
-];
+
 
 const HOW = [
   { n: "01", title: "Resume parsed",       desc: "We extract your skills, technologies, and experience level automatically." },
-  { n: "02", title: "Questions generated", desc: "Questions are created from role-specific ML knowledge, personalised to your background." },
+  { n: "02", title: "Questions generated", desc: "Questions are created from role-specific knowledge, personalised to your background." },
   { n: "03", title: "Answers evaluated",   desc: "Each response is scored and reviewed in real time with targeted feedback." },
   { n: "04", title: "Report produced",     desc: "A structured hiring report with topic coverage and recommendation is generated." },
 ];
@@ -31,6 +18,8 @@ export default function SetupPage() {
   const navigate = useNavigate();
   const { setCandidateName, setRole, setSessionId, setCurrentQuestion, setQuestionsRemaining, setParsedResume } = useInterview();
 
+  const [roles, setRoles]               = useState<RoleInfo[]>([]);
+  const [rolesLoading, setRolesLoading] = useState(true);
   const [name, setName]                 = useState("");
   const [email, setEmail]               = useState("");
   const [selectedRole, setSelectedRole] = useState("");
@@ -40,6 +29,20 @@ export default function SetupPage() {
   const [error, setError]               = useState("");
   const [created, setCreated] = useState<{ sessionId: string; inviteUrl: string } | null>(null);
   const [inviteStatus, setInviteStatus] = useState<"idle" | "sending" | "sent" | "copied">("idle");
+
+  // Fetch available roles (built-in + custom) on mount
+  useEffect(() => {
+    getRoles()
+      .then((res) => setRoles(res.roles))
+      .catch(() => {
+        // Fallback to built-in roles if fetch fails
+        setRoles([
+          { slug: "ai_ml", label: "AI / ML Engineer", description: "Machine learning, deep learning, model development and deployment", topics: ["Neural Nets", "MLOps", "Transformers", "Model Eval"], is_builtin: true },
+          { slug: "data_science", label: "Data Scientist", description: "Applied ML, statistical modeling, data analysis and visualization", topics: ["Statistics", "EDA", "Regression", "A/B Testing"], is_builtin: true },
+        ]);
+      })
+      .finally(() => setRolesLoading(false));
+  }, []);
 
   const onDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -180,30 +183,49 @@ export default function SetupPage() {
 
               <div>
                 <label className="field-label mb-2">Target role</label>
-                <div className="grid grid-cols-1 gap-2.5">
-                  {ROLES.map((r) => {
-                    const active = selectedRole === r.id;
-                    return (
-                      <button
-                        key={r.id}
-                        type="button"
-                        onClick={() => setSelectedRole(r.id)}
-                        className="text-left p-4 rounded-xl transition-all"
-                        style={{
-                          border: active ? "1.5px solid var(--brand)" : "1.5px solid var(--border)",
-                          background: active ? "var(--brand-soft)" : "#fff",
-                          boxShadow: active ? "0 0 0 3px rgba(13,148,136,0.09)" : "none",
-                        }}
-                      >
-                        <div className="text-[15px] font-semibold mb-1">{r.label}</div>
-                        <p className="text-[13px] muted">{r.desc}</p>
-                        <div className="flex flex-wrap gap-1.5 mt-3">
-                          {r.topics.map((t) => <span key={t} className="badge">{t}</span>)}
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
+                {rolesLoading ? (
+                  <div className="flex items-center gap-2 py-4 muted text-[14px]">
+                    <span className="w-4 h-4 border-2 border-t-transparent rounded-full spin" style={{ borderColor: "var(--brand)" }} />
+                    Loading roles…
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 gap-2.5">
+                    {roles.map((r) => {
+                      const active = selectedRole === r.slug;
+                      return (
+                        <button
+                          key={r.slug}
+                          type="button"
+                          onClick={() => setSelectedRole(r.slug)}
+                          className="text-left p-4 rounded-xl transition-all"
+                          style={{
+                            border: active ? "1.5px solid var(--brand)" : "1.5px solid var(--border)",
+                            background: active ? "var(--brand-soft)" : "#fff",
+                            boxShadow: active ? "0 0 0 3px rgba(13,148,136,0.09)" : "none",
+                          }}
+                        >
+                          <div className="flex items-center gap-2 mb-1">
+                            <div className="text-[15px] font-semibold">{r.label}</div>
+                            {!r.is_builtin && (
+                              <span
+                                className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded"
+                                style={{ background: "rgba(99,102,241,0.08)", color: "#6366f1" }}
+                              >
+                                Custom
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[13px] muted">{r.description}</p>
+                          {r.topics.length > 0 && (
+                            <div className="flex flex-wrap gap-1.5 mt-3">
+                              {r.topics.map((t) => <span key={t} className="badge">{t}</span>)}
+                            </div>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
               <div>

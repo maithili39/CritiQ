@@ -1,8 +1,48 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { listSessions, SessionListItem } from "@/lib/api";
+import { listSessions, getCalibration, SessionListItem } from "@/lib/api";
 import Navbar from "@/components/Navbar";
 import SiteFooter from "@/components/SiteFooter";
+
+type Calibration = Awaited<ReturnType<typeof getCalibration>>;
+
+function CalibrationBanner({ cal }: { cal: Calibration }) {
+  if (cal.total_labeled === 0) return null;
+  const corr = cal.correlation;
+  // Pearson r: >0.5 strong, 0.3-0.5 moderate, else weak/insufficient.
+  const corrColor = corr == null ? "#9ca3af" : corr >= 0.5 ? "#34d399" : corr >= 0.3 ? "#fbbf24" : "#f87171";
+  const corrLabel = corr == null ? "Need ≥3 outcomes" : corr >= 0.5 ? "Strong" : corr >= 0.3 ? "Moderate" : "Weak";
+  const { true_positive: tp, false_positive: fp, false_negative: fn, true_negative: tn } = cal.confusion;
+  const decided = tp + fp + fn + tn;
+  const accuracy = decided ? Math.round(((tp + tn) / decided) * 100) : null;
+
+  const stats = [
+    { label: "Labeled outcomes", value: String(cal.total_labeled) },
+    { label: "Score↔hire correlation", value: corr == null ? "—" : corr.toFixed(2), sub: corrLabel, color: corrColor },
+    { label: "Recommendation accuracy", value: accuracy == null ? "—" : `${accuracy}%` },
+    { label: "Missed strong hires", value: String(fn), color: fn > 0 ? "#fbbf24" : undefined },
+  ];
+
+  return (
+    <div className="card p-6 mb-6 fade-up">
+      <div className="flex items-center justify-between mb-4">
+        <div className="eyebrow">Screening Calibration</div>
+        <span className="badge muted text-[11px]">validated against your real hiring outcomes</span>
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        {stats.map((s) => (
+          <div key={s.label}>
+            <div className="text-[26px] font-bold leading-none mb-1" style={{ color: s.color ?? "var(--text)", fontFamily: "'Outfit', sans-serif" }}>
+              {s.value}
+            </div>
+            <div className="text-[11px] muted">{s.label}</div>
+            {s.sub ? <div className="text-[10px] font-semibold mt-0.5" style={{ color: s.color }}>{s.sub}</div> : null}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 const ROLE_LABELS: Record<string, string> = {
   ai_ml: "AI / ML Engineer",
@@ -26,11 +66,14 @@ export default function MySessionsPage() {
   const [total, setTotal] = useState(0);
   const [error, setError] = useState("");
   const [loadingMore, setLoadingMore] = useState(false);
+  const [calibration, setCalibration] = useState<Calibration | null>(null);
 
   useEffect(() => {
     listSessions(PAGE_SIZE, 0)
       .then((res) => { setSessions(res.sessions); setTotal(res.total); })
       .catch((err) => setError(err instanceof Error ? err.message : "Failed to load sessions."));
+    // Non-critical — the dashboard still renders if calibration can't load.
+    getCalibration().then(setCalibration).catch(() => {});
   }, []);
 
   const loadMore = () => {
@@ -55,6 +98,8 @@ export default function MySessionsPage() {
           </div>
 
           {error ? <div className="alert-error mb-4">{error}</div> : null}
+
+          {calibration ? <CalibrationBanner cal={calibration} /> : null}
 
           {sessions === null && !error ? (
             <div className="card p-10 text-center">

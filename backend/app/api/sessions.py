@@ -11,10 +11,10 @@ from app.api.deps import get_current_user
 from app.core.config import settings
 from app.core.database import get_db
 from app.core.limiter import limiter
-from app.core.roles import ALLOWED_ROLES, ROLE_LABELS
+from app.core.roles import ROLE_LABELS, get_all_role_slugs, get_all_roles
 from app.models.session import InterviewSession, SessionStatus
 from app.models.user import User
-from app.schemas.interview import AnswerSubmit
+from app.schemas.interview import AnswerSubmit, OutcomeSubmit
 from app.services import interview_orchestrator as orchestrator
 from app.services.emailer import send_text_email
 
@@ -33,7 +33,7 @@ def _invite_url(session: InterviewSession) -> str:
 def _send_invite_email(session: InterviewSession) -> None:
     if not session.candidate_email:
         return
-    role_label = ROLE_LABELS.get(session.role, session.role)
+    role_label = ROLE_LABELS.get(session.role, session.role)  # fallback to slug for custom roles
     link = _invite_url(session)
     body = (
         f"Hi {session.candidate_name},\n\n"
@@ -63,6 +63,17 @@ def require_owned_session(
 
 def _looks_like_pdf(file_bytes: bytes) -> bool:
     return file_bytes.startswith(PDF_MAGIC)
+
+
+@router.get("/roles", response_model=dict)
+@limiter.limit("60/minute")
+def list_roles(
+    request: Request,
+    db: DBSession = Depends(get_db),
+    _current_user: User = Depends(get_current_user),
+):
+    """Return all available interview roles (built-in + custom). Used by the Setup page."""
+    return {"roles": get_all_roles(db)}
 
 
 @router.get("", response_model=dict)
@@ -96,8 +107,9 @@ async def create_session(
     if not candidate_name or len(candidate_name) > MAX_NAME_LENGTH:
         raise HTTPException(400, f"Candidate name must be 1-{MAX_NAME_LENGTH} characters.")
 
-    if role not in ALLOWED_ROLES:
-        raise HTTPException(400, f"Invalid role. Choose from: {', '.join(ALLOWED_ROLES)}")
+    valid_slugs = get_all_role_slugs(db)
+    if role not in valid_slugs:
+        raise HTTPException(400, f"Invalid role. Choose from: {', '.join(sorted(valid_slugs))}")
 
     if candidate_email and not EMAIL_RE.match(candidate_email.strip()):
         raise HTTPException(400, "Invalid email address.")
@@ -208,6 +220,8 @@ def submit_answer(
         "rationale": rationale.get("rationale", ""),
         "strengths": rationale.get("strengths", ""),
         "gaps": rationale.get("gaps", ""),
+        "dimension_scores": rationale.get("dimension_scores", {}),
+        "needs_human_review": answer.needs_human_review,
         "next_question": _format_question(next_q) if next_q else None,
         "is_complete": is_complete,
         "questions_remaining": max(0, settings.MAX_QUESTIONS - session.current_question_index),
@@ -242,6 +256,36 @@ def complete_session(
             "recommendation": report.recommendation,
         },
     }
+
+
+# NOTE: declared before "/{session_id}" so GET /sessions/calibration isn't
+# swallowed by the session_id path param.
+@router.get("/calibration", response_model=dict)
+@limiter.limit("30/minute")
+def get_calibration(
+    request: Request,
+    db: DBSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Score-vs-outcome calibration across the recruiter's labeled sessions."""
+    return orchestrator.compute_calibration(db, current_user.id)
+
+
+@router.post("/{session_id}/outcome", response_model=dict)
+@limiter.limit("20/minute")
+def record_outcome(
+    request: Request,
+    session_id: str,
+    payload: OutcomeSubmit,
+    db: DBSession = Depends(get_db),
+    _session: InterviewSession = Depends(require_owned_session),
+):
+    """Record the real hiring outcome for a session (ground truth for calibration)."""
+    try:
+        session = orchestrator.set_session_outcome(db, session_id, payload.outcome, payload.note or "")
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+    return {"session_id": session.id, "outcome": session.outcome, "outcome_at": session.outcome_at.isoformat()}
 
 
 @router.get("/{session_id}", response_model=dict)

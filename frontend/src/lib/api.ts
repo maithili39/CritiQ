@@ -59,6 +59,10 @@ export async function getMe() {
   return request<{ id: string; email: string }>("/auth/me");
 }
 
+export async function getRoles() {
+  return request<{ roles: RoleInfo[] }>("/sessions/roles");
+}
+
 export async function listSessions(limit = 20, offset = 0) {
   return request<{ sessions: SessionListItem[]; total: number; limit: number; offset: number }>(
     `/sessions?limit=${limit}&offset=${offset}`
@@ -123,6 +127,14 @@ export async function getSession(sessionId: string) {
   return request<SessionSummary>(`/sessions/${sessionId}`);
 }
 
+export interface RoleInfo {
+  slug: string;
+  label: string;
+  description: string;
+  topics: string[];
+  is_builtin: boolean;
+}
+
 export interface Question {
   id: string;
   text: string;
@@ -140,6 +152,34 @@ export interface AnswerData {
   rationale: string;
   strengths: string;
   gaps: string;
+  dimension_scores?: Record<string, number>;
+  rubric_version?: string | null;
+  score_variance?: number | null;
+  needs_human_review?: boolean | null;
+  submitted_at: string | null;
+  response_time_ms: number | null;
+  paste_detected: boolean | null;
+  tab_switch_count: number | null;
+  integrity_flags: IntegrityFlags | null;
+  has_camera_snapshot: boolean;
+}
+
+export interface IntegrityFlags {
+  suspicious: boolean;
+  reasons: string[];
+}
+
+export interface IntegritySignal {
+  code: string;
+  detail: string;
+  weight: number;
+}
+
+export interface IntegritySummary {
+  confidence: number;
+  risk_level: "low" | "medium" | "high";
+  signals: IntegritySignal[];
+  answers_analyzed: number;
 }
 
 export interface Report {
@@ -149,6 +189,38 @@ export interface Report {
   strengths: string;
   gaps: string;
   recommendation: string;
+  integrity_summary?: IntegritySummary | null;
+}
+
+export type Outcome = "rejected" | "no_show" | "hired" | "hired_strong";
+
+export async function recordOutcome(sessionId: string, outcome: Outcome, note = "") {
+  return request<{ session_id: string; outcome: string; outcome_at: string }>(
+    `/sessions/${sessionId}/outcome`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ outcome, note }),
+    }
+  );
+}
+
+export interface CalibrationPoint {
+  session_id: string;
+  candidate_name: string;
+  role: string;
+  predicted_score: number;
+  recommendation: string;
+  outcome: Outcome;
+}
+
+export async function getCalibration() {
+  return request<{
+    total_labeled: number;
+    correlation: number | null;
+    confusion: { true_positive: number; false_positive: number; false_negative: number; true_negative: number };
+    points: CalibrationPoint[];
+  }>("/sessions/calibration");
 }
 
 export interface SessionListItem {
@@ -178,6 +250,9 @@ export interface SessionSummary {
   };
   questions: (Question & { answer: AnswerData | null })[];
   report: Report | null;
+  outcome: Outcome | null;
+  outcome_note: string | null;
+  outcome_at: string | null;
   invite_url: string;
   created_at: string;
   completed_at: string | null;
@@ -223,13 +298,30 @@ export async function startCandidateSession(sessionId: string, token: string) {
   );
 }
 
+export interface CandidateAnswerTelemetry {
+  response_time_ms?: number;
+  paste_detected?: boolean;
+  tab_switch_count?: number;
+  camera_snapshot?: string;
+}
+
 // Returns immediately ({ status: "processing" }) - scoring + next-question
 // generation run in a background task on the server. Poll getCandidateSession
 // and wait for is_processing to clear to find out what happened.
-export async function submitCandidateAnswer(sessionId: string, token: string, questionId: string, answerText: string) {
+export async function submitCandidateAnswer(
+  sessionId: string,
+  token: string,
+  questionId: string,
+  answerText: string,
+  telemetry: CandidateAnswerTelemetry = {}
+) {
   return candidateRequest<{ status: string }>(
     sessionId, token, `/answers?question_id=${encodeURIComponent(questionId)}`,
-    { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ answer_text: answerText }) }
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ answer_text: answerText, ...telemetry }),
+    }
   );
 }
 

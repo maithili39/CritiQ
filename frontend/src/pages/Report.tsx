@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { getSession, SessionSummary } from "@/lib/api";
+import { getSession, recordOutcome, SessionSummary, IntegrityFlags, Outcome } from "@/lib/api";
 import Navbar from "@/components/Navbar";
 import SiteFooter from "@/components/SiteFooter";
 
@@ -16,8 +16,51 @@ const ROLE_LABELS: Record<string, string> = {
   data_science: "Data Scientist",
 };
 
+const INTEGRITY_REASON_LABELS: Record<string, string> = {
+  paste_detected:          "Paste detected",
+  sub_15s_response:        "< 15s response time",
+  high_score_fast_response:"High score + fast answer",
+};
+
 function scoreColor(s: number) {
   return s >= 7 ? "#16a34a" : s >= 5 ? "#f59e0b" : "#ef4444";
+}
+
+function formatMs(ms: number | null | undefined): string {
+  if (ms == null) return "—";
+  if (ms < 1000) return `${ms}ms`;
+  if (ms < 60_000) return `${(ms / 1000).toFixed(1)}s`;
+  return `${Math.floor(ms / 60_000)}m ${Math.floor((ms % 60_000) / 1000)}s`;
+}
+
+function formatReasonLabel(reason: string): string {
+  // Handle dynamic reasons like "tab_switched_2x"
+  const match = reason.match(/^tab_switched_(\d+)x$/);
+  if (match) return `Tab switched ${match[1]}×`;
+  return INTEGRITY_REASON_LABELS[reason] ?? reason.replace(/_/g, " ");
+}
+
+function IntegrityBadge({ flags }: { flags: IntegrityFlags | null | undefined }) {
+  if (!flags) return null;
+  if (flags.suspicious) {
+    return (
+      <span
+        className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full"
+        style={{ background: "rgba(239,68,68,0.1)", color: "#ef4444", border: "1px solid rgba(239,68,68,0.25)" }}
+        title={flags.reasons.map(formatReasonLabel).join(", ")}
+      >
+        🚨 Flagged
+      </span>
+    );
+  }
+  return (
+    <span
+      className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full"
+      style={{ background: "rgba(16,185,129,0.08)", color: "#16a34a", border: "1px solid rgba(16,185,129,0.2)" }}
+    >
+      ✅ Clean
+    </span>
+  );
 }
 
 export default function ReportPage() {
@@ -25,6 +68,18 @@ export default function ReportPage() {
   const [session, setSession] = useState<SessionSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [openQs, setOpenQs]   = useState<Set<string>>(new Set());
+  const [savingOutcome, setSavingOutcome] = useState(false);
+
+  const saveOutcome = async (outcome: Outcome) => {
+    if (!sessionId) return;
+    setSavingOutcome(true);
+    try {
+      await recordOutcome(sessionId, outcome);
+      setSession((s) => (s ? { ...s, outcome, outcome_at: new Date().toISOString() } : s));
+    } finally {
+      setSavingOutcome(false);
+    }
+  };
 
   useEffect(() => {
     if (!sessionId) return;
@@ -62,6 +117,14 @@ export default function ReportPage() {
   const rec = REC[report.recommendation] ?? REC.maybe;
   const topicEntries = Object.entries(report.topic_coverage || {});
   const score = report.overall_score ?? 0;
+
+  // Integrity summary stats
+  const answeredQs   = questions.filter((q) => q.answer);
+  const flaggedCount = answeredQs.filter((q) => q.answer?.integrity_flags?.suspicious).length;
+  const pasteCount   = answeredQs.filter((q) => q.answer?.paste_detected).length;
+  const totalTabSwitches = answeredQs.reduce((acc, q) => acc + (q.answer?.tab_switch_count ?? 0), 0);
+  const cameraCount  = answeredQs.filter((q) => q.answer?.has_camera_snapshot).length;
+  const hasIntegrityData = answeredQs.some((q) => q.answer?.response_time_ms != null);
 
   return (
     <div className="page-stack" style={{ background: "var(--bg-soft)" }}>
@@ -141,6 +204,56 @@ export default function ReportPage() {
               </div>
             )}
 
+            {/* ---- Integrity Summary (Audit Trail) ---- */}
+            {hasIntegrityData && (
+              <div className="card p-6">
+                <div className="flex items-center justify-between mb-5">
+                  <div className="text-[11px] font-bold uppercase tracking-widest" style={{ color: "var(--brand)" }}>
+                    Integrity Audit
+                  </div>
+                  <span
+                    className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full"
+                    style={
+                      flaggedCount > 0
+                        ? { background: "rgba(239,68,68,0.08)", color: "#ef4444", border: "1px solid rgba(239,68,68,0.2)" }
+                        : { background: "rgba(16,185,129,0.08)", color: "#16a34a", border: "1px solid rgba(16,185,129,0.2)" }
+                    }
+                  >
+                    {flaggedCount > 0 ? `⚠️ ${flaggedCount} flagged` : "✅ All clear"}
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {[
+                    { label: "Flagged answers", value: `${flaggedCount} / ${answeredQs.length}`, warn: flaggedCount > 0 },
+                    { label: "Paste events",    value: String(pasteCount),  warn: pasteCount > 0 },
+                    { label: "Tab switches",    value: String(totalTabSwitches), warn: totalTabSwitches > 0 },
+                    { label: "Camera captures", value: `${cameraCount} / ${answeredQs.length}`, warn: false },
+                  ].map((stat) => (
+                    <div
+                      key={stat.label}
+                      className="rounded-xl p-3.5 text-center"
+                      style={{
+                        background: stat.warn ? "rgba(239,68,68,0.04)" : "#f9fafb",
+                        border: `1px solid ${stat.warn ? "rgba(239,68,68,0.15)" : "#e5e7eb"}`,
+                      }}
+                    >
+                      <div
+                        className="text-[22px] font-bold leading-none mb-1"
+                        style={{ color: stat.warn ? "#ef4444" : "#0b0c15", fontFamily: "'Outfit', sans-serif" }}
+                      >
+                        {stat.value}
+                      </div>
+                      <div className="text-[11px]" style={{ color: "#9ca3af" }}>{stat.label}</div>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-[11px] mt-4 leading-relaxed" style={{ color: "#9ca3af" }}>
+                  Integrity signals are collected automatically during the proctored interview session and stored for legal audit purposes. Flagged answers warrant human review before a hiring decision.
+                </p>
+              </div>
+            )}
+
+            {/* ---- Interview Transcript (Audit Trail) ---- */}
             <div className="card p-6">
               <div className="text-[11px] font-bold uppercase tracking-widest mb-5" style={{ color: "var(--brand)" }}>
                 Interview Transcript
@@ -148,6 +261,7 @@ export default function ReportPage() {
               <div className="flex flex-col gap-2">
                 {questions.map((q, i) => {
                   const isOpen = openQs.has(q.id);
+                  const integrity = q.answer?.integrity_flags;
                   return (
                     <div
                       key={q.id}
@@ -168,11 +282,14 @@ export default function ReportPage() {
                         <p className="text-[13px] font-medium flex-1 text-left line-clamp-1" style={{ color: "#0b0c15" }}>
                           {q.text}
                         </p>
-                        {q.answer?.score != null && (
-                          <span className="text-[12px] font-bold flex-shrink-0" style={{ color: scoreColor(q.answer.score) }}>
-                            {q.answer.score.toFixed(1)}/10
-                          </span>
-                        )}
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          {integrity != null && <IntegrityBadge flags={integrity} />}
+                          {q.answer?.score != null && (
+                            <span className="text-[12px] font-bold" style={{ color: scoreColor(q.answer.score) }}>
+                              {q.answer.score.toFixed(1)}/10
+                            </span>
+                          )}
+                        </div>
                         <svg
                           className="w-4 h-4 flex-shrink-0 transition-transform duration-200"
                           style={{ color: "#9ca3af", transform: isOpen ? "rotate(180deg)" : "none" }}
@@ -188,23 +305,90 @@ export default function ReportPage() {
                             {q.text}
                           </p>
                           {q.answer ? (
-                            <div className="rounded-xl p-4" style={{ background: "#f9fafb", border: "1px solid #e5e7eb" }}>
-                              <div className="flex justify-between items-center mb-2">
-                                <span className="text-[11px] font-bold uppercase tracking-wide" style={{ color: "#9ca3af" }}>
-                                  Answer
-                                </span>
-                                {q.answer.score != null && (
-                                  <span className="text-[12px] font-bold" style={{ color: scoreColor(q.answer.score) }}>
-                                    {q.answer.score.toFixed(1)}/10
+                            <div className="flex flex-col gap-3">
+                              <div className="rounded-xl p-4" style={{ background: "#f9fafb", border: "1px solid #e5e7eb" }}>
+                                <div className="flex justify-between items-center mb-2">
+                                  <span className="text-[11px] font-bold uppercase tracking-wide" style={{ color: "#9ca3af" }}>
+                                    Answer
+                                  </span>
+                                  {q.answer.score != null && (
+                                    <span className="text-[12px] font-bold" style={{ color: scoreColor(q.answer.score) }}>
+                                      {q.answer.score.toFixed(1)}/10
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-[13px] leading-relaxed" style={{ color: "#4b5563" }}>{q.answer.text}</p>
+                                {q.answer.rationale && (
+                                  <p className="text-[12px] mt-3 leading-relaxed" style={{ color: "#0d9488" }}>
+                                    <span className="font-semibold">Feedback:</span> {q.answer.rationale}
+                                  </p>
+                                )}
+
+                                {/* Per-dimension rubric breakdown (how the score was built) */}
+                                {q.answer.dimension_scores && Object.keys(q.answer.dimension_scores).length > 0 && (
+                                  <div className="mt-3 flex flex-wrap gap-1.5">
+                                    {Object.entries(q.answer.dimension_scores).map(([dim, val]) => (
+                                      <span
+                                        key={dim}
+                                        className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
+                                        style={{ background: "#eef2f5", color: "#4b5563" }}
+                                        title={`${dim}: ${(val as number).toFixed(1)}/10`}
+                                      >
+                                        {dim.replace(/_/g, " ")} {(val as number).toFixed(1)}
+                                      </span>
+                                    ))}
+                                    {q.answer.needs_human_review && (
+                                      <span
+                                        className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                                        style={{ background: "rgba(245,158,11,0.12)", color: "#b45309" }}
+                                        title={`The two scoring passes disagreed by ${q.answer.score_variance ?? "?"} points`}
+                                      >
+                                        ⚖ Score uncertain — review
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* ---- RAG traceability: what this question was grounded in ---- */}
+                              {q.source_context && (
+                                <details className="rounded-xl" style={{ background: "#f0f7f6", border: "1px solid #d6e9e6" }}>
+                                  <summary className="cursor-pointer px-4 py-2.5 text-[11px] font-bold uppercase tracking-wide" style={{ color: "#0d9488" }}>
+                                    📎 Grounded in knowledge base
+                                  </summary>
+                                  <div className="px-4 pb-4">
+                                    <p className="text-[11px] mb-2" style={{ color: "#6b7280" }}>
+                                      This question was generated from the following retrieved source material — not free-form by the model:
+                                    </p>
+                                    <pre className="text-[11px] leading-relaxed whitespace-pre-wrap" style={{ color: "#374151", fontFamily: "inherit" }}>
+                                      {q.source_context}
+                                    </pre>
+                                  </div>
+                                </details>
+                              )}
+
+                              {/* Audit meta row */}
+                              <div
+                                className="rounded-xl px-4 py-3 flex flex-wrap gap-x-5 gap-y-1.5 text-[11px]"
+                                style={{ background: "#f3f4f6", color: "#6b7280" }}
+                              >
+                                {q.answer.submitted_at && (
+                                  <span>
+                                    🕐 Submitted {new Date(q.answer.submitted_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+                                  </span>
+                                )}
+                                {q.answer.response_time_ms != null && (
+                                  <span>⏱ Response time: {formatMs(q.answer.response_time_ms)}</span>
+                                )}
+                                <span>📋 Paste: {q.answer.paste_detected ? "⚠️ Detected" : "None"}</span>
+                                <span>🔍 Tab switches: {q.answer.tab_switch_count ?? 0}</span>
+                                <span>📷 Camera: {q.answer.has_camera_snapshot ? "Captured" : "No snapshot"}</span>
+                                {integrity?.suspicious && integrity.reasons.length > 0 && (
+                                  <span style={{ color: "#ef4444" }}>
+                                    🚨 Flags: {integrity.reasons.map(formatReasonLabel).join(", ")}
                                   </span>
                                 )}
                               </div>
-                              <p className="text-[13px] leading-relaxed" style={{ color: "#4b5563" }}>{q.answer.text}</p>
-                              {q.answer.rationale && (
-                                <p className="text-[12px] mt-3 leading-relaxed" style={{ color: "#0d9488" }}>
-                                  <span className="font-semibold">Feedback:</span> {q.answer.rationale}
-                                </p>
-                              )}
                             </div>
                           ) : (
                             <span className="text-[13px] italic" style={{ color: "#9ca3af" }}>No answer submitted</span>
@@ -251,6 +435,84 @@ export default function ReportPage() {
               </div>
             </div>
 
+            {/* ---- Fused integrity confidence (session-level) ---- */}
+            {report.integrity_summary && report.integrity_summary.answers_analyzed > 0 && (() => {
+              const isum = report.integrity_summary!;
+              const c = isum.risk_level === "low" ? "#16a34a" : isum.risk_level === "medium" ? "#f59e0b" : "#ef4444";
+              return (
+                <div className="card p-5">
+                  <div className="text-[11px] font-bold uppercase tracking-widest mb-3" style={{ color: "#9ca3af" }}>
+                    Integrity Confidence
+                  </div>
+                  <div className="flex items-end gap-2 mb-2">
+                    <span className="text-[40px] font-bold leading-none" style={{ color: c, fontFamily: "'Outfit', sans-serif" }}>
+                      {isum.confidence}
+                    </span>
+                    <span className="text-[12px] mb-1" style={{ color: "#9ca3af" }}>/ 100</span>
+                    <span className="ml-auto mb-1 text-[11px] font-bold uppercase tracking-wide" style={{ color: c }}>
+                      {isum.risk_level} risk
+                    </span>
+                  </div>
+                  <div className="progress-track mb-3">
+                    <div className="progress-fill" style={{ width: `${isum.confidence}%`, background: c }} />
+                  </div>
+                  {isum.signals.length > 0 ? (
+                    <ul className="flex flex-col gap-1">
+                      {isum.signals.map((sig) => (
+                        <li key={sig.code} className="text-[11px] flex justify-between gap-2" style={{ color: "#6b7280" }}>
+                          <span>{sig.detail}</span>
+                          <span className="font-semibold" style={{ color: c }}>−{sig.weight}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-[11px]" style={{ color: "#9ca3af" }}>No integrity signals fired across the session.</p>
+                  )}
+                </div>
+              );
+            })()}
+
+            {/* ---- Recruiter outcome feedback (ground truth for calibration) ---- */}
+            <div className="card p-5">
+              <div className="text-[11px] font-bold uppercase tracking-widest mb-1" style={{ color: "#9ca3af" }}>
+                Actual Hiring Outcome
+              </div>
+              <p className="text-[11px] mb-3 leading-relaxed" style={{ color: "#9ca3af" }}>
+                Record what really happened — this calibrates the AI's scores against real hires over time.
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                {([
+                  { key: "hired_strong", label: "Strong hire", c: "#16a34a" },
+                  { key: "hired", label: "Hired", c: "#16a34a" },
+                  { key: "rejected", label: "Rejected", c: "#ef4444" },
+                  { key: "no_show", label: "No show", c: "#9ca3af" },
+                ] as { key: Outcome; label: string; c: string }[]).map((o) => {
+                  const active = session.outcome === o.key;
+                  return (
+                    <button
+                      key={o.key}
+                      disabled={savingOutcome}
+                      onClick={() => saveOutcome(o.key)}
+                      className="text-[12px] font-semibold py-2 rounded-lg transition-all"
+                      style={{
+                        background: active ? o.c : "#f9fafb",
+                        color: active ? "#fff" : "#4b5563",
+                        border: `1px solid ${active ? o.c : "#e5e7eb"}`,
+                        opacity: savingOutcome ? 0.6 : 1,
+                      }}
+                    >
+                      {o.label}
+                    </button>
+                  );
+                })}
+              </div>
+              {session.outcome_at && (
+                <p className="text-[10px] mt-2" style={{ color: "#9ca3af" }}>
+                  Recorded {new Date(session.outcome_at).toLocaleDateString("en-GB")}
+                </p>
+              )}
+            </div>
+
             <div className="card p-5">
               <div className="text-[11px] font-bold uppercase tracking-widest mb-4" style={{ color: "#9ca3af" }}>
                 Candidate Details
@@ -271,6 +533,35 @@ export default function ReportPage() {
                 ))}
               </div>
             </div>
+
+            {/* Compact integrity summary in sidebar */}
+            {hasIntegrityData && (
+              <div className="card p-5">
+                <div className="text-[11px] font-bold uppercase tracking-widest mb-3" style={{ color: "#9ca3af" }}>
+                  Integrity
+                </div>
+                <div className="flex flex-col gap-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[12px]" style={{ color: "#9ca3af" }}>Flagged answers</span>
+                    <span className="text-[12px] font-semibold" style={{ color: flaggedCount > 0 ? "#ef4444" : "#16a34a" }}>
+                      {flaggedCount} / {answeredQs.length}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-[12px]" style={{ color: "#9ca3af" }}>Paste events</span>
+                    <span className="text-[12px] font-semibold" style={{ color: pasteCount > 0 ? "#ef4444" : "#16a34a" }}>
+                      {pasteCount}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-[12px]" style={{ color: "#9ca3af" }}>Tab switches</span>
+                    <span className="text-[12px] font-semibold" style={{ color: totalTabSwitches > 0 ? "#f59e0b" : "#16a34a" }}>
+                      {totalTabSwitches}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {parsed_resume?.skills?.length > 0 && (
               <div className="card p-5">
