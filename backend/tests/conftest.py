@@ -28,13 +28,22 @@ from app.models import session as _session_models
 from app.models import user as _user_models
 
 
+# CI also runs the whole suite against a real Postgres service container by
+# setting TEST_DATABASE_URL, closing the SQLite-vs-Postgres behavior gap
+# (JSON/datetime/constraint semantics) without slowing down local runs.
+TEST_DATABASE_URL = os.environ.get("TEST_DATABASE_URL", "")
+
+
 @pytest.fixture()
 def db_engine():
-    engine = create_engine(
-        "sqlite://",
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-    )
+    if TEST_DATABASE_URL:
+        engine = create_engine(TEST_DATABASE_URL)
+    else:
+        engine = create_engine(
+            "sqlite://",
+            connect_args={"check_same_thread": False},
+            poolclass=StaticPool,
+        )
     Base.metadata.create_all(bind=engine)
     yield engine
     Base.metadata.drop_all(bind=engine)
