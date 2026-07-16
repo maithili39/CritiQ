@@ -148,8 +148,7 @@ def test_groq_translates_tool_schema_and_parses_arguments(fake_groq):
     assert kwargs["tools"] == [
         {
             "type": "function",
-            "function": {"name": "record_thing", "description": "records a thing",
-                         "parameters": _TOOL["input_schema"]},
+            "function": {"name": "record_thing", "description": "records a thing", "parameters": _TOOL["input_schema"]},
         }
     ]
     assert kwargs["tool_choice"] == {"type": "function", "function": {"name": "record_thing"}}

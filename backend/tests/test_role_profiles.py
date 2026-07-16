@@ -20,8 +20,9 @@ def db(db_engine):
 
 
 def _add_custom_role(db, slug: str, persona=None, difficulty_guide=None):
-    db.add(CustomRole(slug=slug, label=slug.replace("_", " ").title(), persona=persona,
-                      difficulty_guide=difficulty_guide))
+    db.add(
+        CustomRole(slug=slug, label=slug.replace("_", " ").title(), persona=persona, difficulty_guide=difficulty_guide)
+    )
     db.commit()
 
 
@@ -41,16 +42,18 @@ def test_unknown_experience_level_falls_back_to_mid(db):
 
 def test_custom_role_with_stored_json_guide(db):
     guide = {"junior": "basics of embedded C", "mid": "RTOS trade-offs", "senior": "interrupt latency tuning"}
-    _add_custom_role(db, "embedded_eng", persona="You are a principal embedded engineer.",
-                     difficulty_guide=json.dumps(guide))
+    _add_custom_role(
+        db, "embedded_eng", persona="You are a principal embedded engineer.", difficulty_guide=json.dumps(guide)
+    )
     profile = rp.get_role_profile(db, "embedded_eng", "senior")
     assert profile["persona"] == "You are a principal embedded engineer."
     assert profile["difficulty"] == "interrupt latency tuning"
 
 
 def test_custom_role_json_guide_missing_level_falls_back_to_mid(db):
-    _add_custom_role(db, "qa_eng", persona="You are a QA lead.",
-                     difficulty_guide=json.dumps({"mid": "test pyramid trade-offs"}))
+    _add_custom_role(
+        db, "qa_eng", persona="You are a QA lead.", difficulty_guide=json.dumps({"mid": "test pyramid trade-offs"})
+    )
     profile = rp.get_role_profile(db, "qa_eng", "senior")
     assert profile["difficulty"] == "test pyramid trade-offs"
 

@@ -27,7 +27,6 @@ from app.main import app
 from app.models import session as _session_models
 from app.models import user as _user_models
 
-
 # CI also runs the whole suite against a real Postgres service container by
 # setting TEST_DATABASE_URL, closing the SQLite-vs-Postgres behavior gap
 # (JSON/datetime/constraint semantics) without slowing down local runs.

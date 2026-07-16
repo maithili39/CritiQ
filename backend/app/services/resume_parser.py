@@ -54,6 +54,7 @@ def redact_pii(text: str) -> str:
     text = _DEMOGRAPHIC_RE.sub("[REDACTED]", text)
     return text
 
+
 _TOOL = {
     "name": "extract_resume_profile",
     "description": "Records structured profile data extracted from a candidate's resume.",

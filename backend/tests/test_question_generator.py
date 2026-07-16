@@ -50,9 +50,7 @@ def test_generate_question_enriches_result(captured_calls):
 
 def test_question_type_cycles_through_all_five(captured_calls):
     types = [
-        qg.generate_question(role="ai_ml", parsed_resume={}, previous_questions=[], question_number=n)[
-            "question_type"
-        ]
+        qg.generate_question(role="ai_ml", parsed_resume={}, previous_questions=[], question_number=n)["question_type"]
         for n in range(1, 7)
     ]
     assert types == ["conceptual", "applied", "scenario", "debugging", "design", "conceptual"]
@@ -81,7 +79,10 @@ def test_only_last_three_previous_questions_in_prompt(captured_calls):
 
 def test_adaptive_text_included_only_after_first_question(captured_calls):
     qg.generate_question(
-        role="ai_ml", parsed_resume={}, previous_questions=["Q1"], previous_answer="SGD uses minibatches...",
+        role="ai_ml",
+        parsed_resume={},
+        previous_questions=["Q1"],
+        previous_answer="SGD uses minibatches...",
         question_number=2,
     )
     assert "SGD uses minibatches" in captured_calls[-1]["user_content"]
@@ -198,8 +199,14 @@ def test_generate_report_includes_transcript_and_avg(monkeypatch):
 
     def fake_call_tool(**kwargs):
         captured.update(kwargs)
-        return {"summary": "s", "overall_score": 7.0, "topic_coverage": {}, "strengths": "", "gaps": "",
-                "recommendation": "yes"}
+        return {
+            "summary": "s",
+            "overall_score": 7.0,
+            "topic_coverage": {},
+            "strengths": "",
+            "gaps": "",
+            "recommendation": "yes",
+        }
 
     monkeypatch.setattr(qg, "call_tool", fake_call_tool)
     qg.generate_report(

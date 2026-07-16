@@ -147,9 +147,7 @@ def test_create_custom_role_rejects_builtin_slug_collision(admin_client):
 
 
 def test_create_custom_role_rejects_duplicate_custom_slug(admin_client, monkeypatch):
-    monkeypatch.setattr(
-        admin_module, "generate_role_profile", lambda *a, **k: {"persona": "p", "difficulty_guide": {}}
-    )
+    monkeypatch.setattr(admin_module, "generate_role_profile", lambda *a, **k: {"persona": "p", "difficulty_guide": {}})
     first = admin_client.post("/api/admin/roles", json=_ROLE_PAYLOAD, headers=ADMIN_HEADERS)
     assert first.status_code == 201
     dup = admin_client.post("/api/admin/roles", json=_ROLE_PAYLOAD, headers=ADMIN_HEADERS)
@@ -157,9 +155,7 @@ def test_create_custom_role_rejects_duplicate_custom_slug(admin_client, monkeypa
 
 
 def test_list_roles_includes_builtin_and_custom(admin_client, monkeypatch):
-    monkeypatch.setattr(
-        admin_module, "generate_role_profile", lambda *a, **k: {"persona": "p", "difficulty_guide": {}}
-    )
+    monkeypatch.setattr(admin_module, "generate_role_profile", lambda *a, **k: {"persona": "p", "difficulty_guide": {}})
     admin_client.post("/api/admin/roles", json=_ROLE_PAYLOAD, headers=ADMIN_HEADERS)
     res = admin_client.get("/api/admin/roles", headers=ADMIN_HEADERS)
     slugs = {r["slug"] for r in res.json()["roles"]}
@@ -177,9 +173,7 @@ def test_delete_missing_custom_role_404(admin_client):
 
 
 def test_delete_custom_role_succeeds(admin_client, monkeypatch):
-    monkeypatch.setattr(
-        admin_module, "generate_role_profile", lambda *a, **k: {"persona": "p", "difficulty_guide": {}}
-    )
+    monkeypatch.setattr(admin_module, "generate_role_profile", lambda *a, **k: {"persona": "p", "difficulty_guide": {}})
     admin_client.post("/api/admin/roles", json=_ROLE_PAYLOAD, headers=ADMIN_HEADERS)
     res = admin_client.delete("/api/admin/roles/devops_eng", headers=ADMIN_HEADERS)
     assert res.status_code == 200
