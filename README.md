@@ -1,7 +1,7 @@
 # CritiQ — AI-Powered Role-Based Candidate Screening System
 
 **Author:** Maithili Dorkhande ([@maithili39](https://github.com/maithili39))
-**Affiliation:** *Your University / Organization*
+**Affiliation:** St. Vincent Pallotti College of Engineering and Technology, Nagpur
 **Date:** July 2026
 
 ---
@@ -77,6 +77,39 @@ rationale, strengths, and gaps — while the next question is generated concurre
 session state machine (`created → active → completed`) governs the flow. On completion,
 integrity signals and outcome calibration are fused into a final structured hiring
 report.
+
+```mermaid
+sequenceDiagram
+    participant R as Recruiter
+    participant C as Candidate
+    participant API as Backend API
+    participant Claude as Claude (LLM)
+    participant DB as Postgres + ChromaDB
+
+    R->>API: Upload resume + select role
+    API->>Claude: Parse resume → skill profile
+    API->>API: Create session, generate invite link
+    R->>C: Share invite link
+
+    C->>API: Start interview
+    API->>DB: Retrieve grounding context (RAG)
+    API->>Claude: Generate first question
+    API-->>C: Show question
+
+    loop Each question
+        C->>API: Submit answer
+        par Scored concurrently
+            API->>Claude: Evaluate answer vs rubric
+        and
+            API->>Claude: Generate next question
+        end
+        API-->>C: Show next question
+    end
+
+    C->>API: Interview complete
+    API->>Claude: Fuse integrity + calibration → report
+    API-->>R: Report with score, strengths, gaps, recommendation
+```
 
 ---
 
@@ -159,47 +192,24 @@ recruiter effort without sacrificing transparency or grounding.
 
 ## References
 
-[1] P. Lewis et al., "Retrieval-Augmented Generation for Knowledge-Intensive NLP
-Tasks," *NeurIPS*, 2020.
-[2] N. Reimers and I. Gurevych, "Sentence-BERT: Sentence Embeddings using Siamese
-BERT-Networks," *EMNLP*, 2019.
-[3] Anthropic, "Claude API Documentation." https://docs.anthropic.com
-[4] ChromaDB, "The AI-native open-source embedding database." https://www.trychroma.com
-[5] FastAPI, "FastAPI Documentation." https://fastapi.tiangolo.com
+[1] P. Lewis, E. Perez, A. Piktus, F. Petroni, V. Karpukhin, N. Goyal, H. Küttler,
+M. Lewis, W. Yih, T. Rocktäschel, S. Riedel, and D. Kiela, "Retrieval-augmented
+generation for knowledge-intensive NLP tasks," in *Proc. 34th Int. Conf. Neural Inf.
+Process. Syst. (NeurIPS)*, Vancouver, Canada, 2020, pp. 9459–9474.
 
----
+[2] N. Reimers and I. Gurevych, "Sentence-BERT: Sentence embeddings using Siamese
+BERT-networks," in *Proc. Conf. Empirical Methods Natural Lang. Process. (EMNLP-IJCNLP)*,
+Hong Kong, 2019, pp. 3982–3992.
 
-## About
+[3] A. Vaswani, N. Shazeer, N. Parmar, J. Uszkoreit, L. Jones, A. N. Gomez, Ł. Kaiser,
+and I. Polosukhin, "Attention is all you need," in *Proc. 31st Int. Conf. Neural Inf.
+Process. Syst. (NeurIPS)*, Long Beach, CA, USA, 2017, pp. 5998–6008.
 
-AI-powered role-based candidate screening system.
+[4] Anthropic, "Claude API documentation." Accessed: Jul. 2026. [Online]. Available:
+https://docs.anthropic.com
 
-### Resources
-- Readme
-- Activity
+[5] Chroma, "ChromaDB: The AI-native open-source embedding database." Accessed:
+Jul. 2026. [Online]. Available: https://www.trychroma.com
 
-### Stars
-- 0 stars
-
-### Watchers
-- 0 watching
-
-### Forks
-- 0 forks
-
-### Releases
-No releases published
-
-### Packages
-No packages published
-
-### Contributors
-1
-- [@maithili39](https://github.com/maithili39) — Maithili Dorkhande
-
----
-
-## Footer
-
-© 2026 GitHub, Inc.
-
-**Footer navigation:** Terms · Privacy · Security
+[6] Sebastián Ramírez, "FastAPI documentation." Accessed: Jul. 2026. [Online].
+Available: https://fastapi.tiangolo.com
