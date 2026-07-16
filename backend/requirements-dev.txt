@@ -3,6 +3,7 @@
 pytest==8.4.2
 pytest-cov==6.3.0
 httpx==0.28.1
+httpx2>=0.1  # starlette>=1.3 testclient backend (silences httpx deprecation)
 
 # Linting / formatting
 ruff>=0.4.0
