@@ -51,6 +51,18 @@ class Settings(BaseSettings):
     # Interview
     MAX_QUESTIONS: int = 8
 
+    # Fairness / bias mitigation
+    #
+    # BLIND_SCREENING: when true (default), personally identifying information
+    # (name, email, phone, address, links, and explicit age/gender/nationality
+    # markers) is redacted from resume text BEFORE it is sent to the LLM, so the
+    # extracted skill profile — and every question and score derived from it —
+    # cannot be influenced by demographic signals. This is the defensible
+    # difference from pasting a raw resume into a general chatbot: evaluation is
+    # blind by construction, which is what "high-risk" hiring regulation (EEOC,
+    # EU AI Act) expects.
+    BLIND_SCREENING: bool = True
+
     # Auth
     JWT_SECRET: str
     JWT_ALGORITHM: str = "HS256"

@@ -159,6 +159,26 @@ recruiter/candidate view separation ensures scores and reports stay confidential
 
 ---
 
+## Why Not Just Use ChatGPT?
+
+A general-purpose chatbot can be prompted to "interview" a candidate, but it cannot be a
+hiring *system*. CritiQ differs on properties a chat interface fundamentally lacks:
+
+| Capability | General LLM chat | CritiQ |
+|---|---|---|
+| Question grounding | Parametric memory (can hallucinate) | RAG over curated role textbooks; every question stores its source chunks |
+| Scoring consistency | Drifts between sessions and phrasings | Fixed per-role rubric with deterministic weighted aggregation |
+| Bias mitigation | Sees the full resume, name and all | **Demographic-blind screening**: PII and demographic markers are redacted before the model ever sees the resume |
+| Integrity | No notion of cheating | Deterministic session-level fusion of paste/tab/timing signals with explainable deductions |
+| Learning from outcomes | Stateless | Recruiter-recorded hiring outcomes are correlated against predicted scores (Pearson, precision/recall) to calibrate the system on private, accumulated data |
+| Confidentiality | One shared transcript | Two-sided flow: candidates never see scores, rationale, or reports |
+| Auditability | Ephemeral chat | Postgres-persisted sessions, answers, grounding context, and structured reports |
+
+In short, the LLM is one *component* — the grounding, rubric, redaction, integrity fusion,
+and outcome calibration around it are what make the evaluation defensible.
+
+---
+
 ## Limitations
 
 - Question quality is bounded by the coverage of the ingested knowledge-base PDFs.
