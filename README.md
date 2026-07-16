@@ -151,8 +151,13 @@ yes / maybe / no recommendation. Key outcomes:
   guaranteed rather than parsed from free text.
 - **Adaptive difficulty:** later questions deepen on strong answers or revert to
   fundamentals on weak ones.
-- **Verification:** the backend Pytest suite and the frontend Vitest suite both pass,
-  the production build type-checks cleanly, and linting passes with zero warnings.
+- **Bias mitigation:** demographic-blind screening redacts PII and demographic
+  markers from resumes before any LLM call, so evaluation is blind by construction.
+- **Verification:** 132 backend Pytest tests (83% statement coverage) and 33
+  frontend Vitest tests all pass; CI additionally re-runs the full backend suite
+  against a real PostgreSQL service container to match production semantics. The
+  production build type-checks cleanly and linting (ruff, ESLint) passes with zero
+  warnings.
 
 Concurrent scoring and next-question generation keep per-turn latency low, and the
 recruiter/candidate view separation ensures scores and reports stay confidential.
