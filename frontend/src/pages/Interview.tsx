@@ -231,7 +231,7 @@ export default function InterviewPage() {
                   <div className="text-[11px] font-bold uppercase tracking-wider mb-2" style={{ color: "#16a34a" }}>
                     Strengths
                   </div>
-                  <div className="text-[13px] leading-relaxed" style={{ color: "#374151" }}>
+                  <div className="text-[13px] leading-relaxed" style={{ color: "var(--muted)" }}>
                     {feedback.strengths}
                   </div>
                 </div>
@@ -244,14 +244,14 @@ export default function InterviewPage() {
                   <div className="text-[11px] font-bold uppercase tracking-wider mb-2" style={{ color: "#ef4444" }}>
                     Areas to improve
                   </div>
-                  <div className="text-[13px] leading-relaxed" style={{ color: "#374151" }}>
+                  <div className="text-[13px] leading-relaxed" style={{ color: "var(--muted)" }}>
                     {feedback.gaps}
                   </div>
                 </div>
               )}
             </div>
 
-            <div className="flex items-center justify-center gap-2.5 text-[13px] py-3" style={{ color: "#6b7280" }}>
+            <div className="flex items-center justify-center gap-2.5 text-[13px] py-3" style={{ color: "var(--muted)" }}>
               <span
                 className="w-3.5 h-3.5 border-2 rounded-full spin"
                 style={{ borderColor: "var(--border)", borderTopColor: "#d97706" }}

@@ -42,7 +42,7 @@ export default function Navbar() {
           <span className="nav-divider" />
           {isAuthenticated ? (
             <>
-              <span className="nav-link" style={{ color: "#6b7280" }}>{email}</span>
+              <span className="nav-link" style={{ color: "var(--muted)" }}>{email}</span>
               <button onClick={handleLogout} className="nav-link nav-login" style={{ background: "none", border: "none", cursor: "pointer" }}>
                 Log out
               </button>
@@ -59,7 +59,7 @@ export default function Navbar() {
 
         <button
           className="md:hidden p-2 rounded-lg"
-          style={{ color: "#4b5563", border: "1px solid #e5e7eb" }}
+          style={{ color: "var(--muted)", border: "1px solid var(--border)" }}
           aria-label="Toggle menu"
           onClick={() => setOpen((o) => !o)}
         >
@@ -75,14 +75,14 @@ export default function Navbar() {
       {open && (
         <div className="md:hidden px-6 pb-5 pt-3 flex flex-col gap-1 fade-in" style={{ borderTop: "1px solid #f3f4f6", background: "#fff" }}>
           {isAuthenticated && (
-            <Link to="/sessions" className="text-[15px] py-3 px-3 rounded-lg font-medium" style={{ color: "#374151" }} onClick={() => setOpen(false)}>
+            <Link to="/sessions" className="text-[15px] py-3 px-3 rounded-lg font-medium" style={{ color: "var(--muted)" }} onClick={() => setOpen(false)}>
               My Sessions
             </Link>
           )}
 
           {isAuthenticated ? (
             <>
-              <span className="text-[13px] py-2 px-3" style={{ color: "#9ca3af" }}>{email}</span>
+              <span className="text-[13px] py-2 px-3" style={{ color: "var(--cyan)" }}>{email}</span>
               <button onClick={handleLogout} className="btn btn-secondary mt-2 text-[14px] py-3">
                 Log out
               </button>

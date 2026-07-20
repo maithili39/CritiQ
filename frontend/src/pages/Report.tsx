@@ -165,13 +165,13 @@ export default function ReportPage() {
               {report.strengths && (
                 <div className="rounded-2xl p-5" style={{ background: "rgba(16,185,129,0.04)", border: "1px solid rgba(16,185,129,0.15)" }}>
                   <div className="text-[11px] font-bold uppercase tracking-widest mb-2" style={{ color: "#16a34a" }}>Strengths</div>
-                  <p className="text-[13px] leading-relaxed" style={{ color: "#374151" }}>{report.strengths}</p>
+                  <p className="text-[13px] leading-relaxed" style={{ color: "var(--muted)" }}>{report.strengths}</p>
                 </div>
               )}
               {report.gaps && (
                 <div className="rounded-2xl p-5" style={{ background: "rgba(239,68,68,0.04)", border: "1px solid rgba(239,68,68,0.15)" }}>
                   <div className="text-[11px] font-bold uppercase tracking-widest mb-2" style={{ color: "#ef4444" }}>Areas to Improve</div>
-                  <p className="text-[13px] leading-relaxed" style={{ color: "#374151" }}>{report.gaps}</p>
+                  <p className="text-[13px] leading-relaxed" style={{ color: "var(--muted)" }}>{report.gaps}</p>
                 </div>
               )}
             </div>
@@ -188,7 +188,7 @@ export default function ReportPage() {
                     return (
                       <div key={topic}>
                         <div className="flex justify-between items-center mb-1.5">
-                          <span className="text-[13px] font-medium" style={{ color: "#0b0c15" }}>{topic}</span>
+                          <span className="text-[13px] font-medium" style={{ color: "var(--ink)" }}>{topic}</span>
                           <span className="text-[13px] font-bold" style={{ color: c }}>{s.toFixed(1)}/10</span>
                         </div>
                         <div className="progress-track">
@@ -239,7 +239,7 @@ export default function ReportPage() {
                     >
                       <div
                         className="text-[22px] font-bold leading-none mb-1"
-                        style={{ color: stat.warn ? "#ef4444" : "#0b0c15", fontFamily: "'Outfit', sans-serif" }}
+                        style={{ color: stat.warn ? "#ef4444" : "var(--ink)", fontFamily: "'Outfit', sans-serif" }}
                       >
                         {stat.value}
                       </div>
@@ -279,7 +279,7 @@ export default function ReportPage() {
                         {q.topic && (
                           <span className="badge badge-brand flex-shrink-0 hidden sm:inline-flex">{q.topic}</span>
                         )}
-                        <p className="text-[13px] font-medium flex-1 text-left line-clamp-1" style={{ color: "#0b0c15" }}>
+                        <p className="text-[13px] font-medium flex-1 text-left line-clamp-1" style={{ color: "var(--ink)" }}>
                           {q.text}
                         </p>
                         <div className="flex items-center gap-2 flex-shrink-0">
@@ -301,7 +301,7 @@ export default function ReportPage() {
 
                       {isOpen && (
                         <div className="px-5 pb-5 fade-in" style={{ borderTop: "1px solid var(--surface-alt)" }}>
-                          <p className="text-[14px] font-medium pt-4 mb-4 leading-relaxed" style={{ color: "#0b0c15" }}>
+                          <p className="text-[14px] font-medium pt-4 mb-4 leading-relaxed" style={{ color: "var(--ink)" }}>
                             {q.text}
                           </p>
                           {q.answer ? (
@@ -317,7 +317,7 @@ export default function ReportPage() {
                                     </span>
                                   )}
                                 </div>
-                                <p className="text-[13px] leading-relaxed" style={{ color: "#4b5563" }}>{q.answer.text}</p>
+                                <p className="text-[13px] leading-relaxed" style={{ color: "var(--muted)" }}>{q.answer.text}</p>
                                 {q.answer.rationale && (
                                   <p className="text-[12px] mt-3 leading-relaxed" style={{ color: "#d97706" }}>
                                     <span className="font-semibold">Feedback:</span> {q.answer.rationale}
@@ -331,7 +331,7 @@ export default function ReportPage() {
                                       <span
                                         key={dim}
                                         className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
-                                        style={{ background: "#eef2f5", color: "#4b5563" }}
+                                        style={{ background: "var(--surface-alt)", color: "var(--muted)" }}
                                         title={`${dim}: ${(val as number).toFixed(1)}/10`}
                                       >
                                         {dim.replace(/_/g, " ")} {(val as number).toFixed(1)}
@@ -352,15 +352,15 @@ export default function ReportPage() {
 
                               {/* ---- RAG traceability: what this question was grounded in ---- */}
                               {q.source_context && (
-                                <details className="rounded-xl" style={{ background: "#f0f7f6", border: "1px solid #d6e9e6" }}>
+                                <details className="rounded-xl" style={{ background: "var(--brand-soft)", border: "1px solid var(--brand-line)" }}>
                                   <summary className="cursor-pointer px-4 py-2.5 text-[11px] font-bold uppercase tracking-wide" style={{ color: "#d97706" }}>
                                     📎 Grounded in knowledge base
                                   </summary>
                                   <div className="px-4 pb-4">
-                                    <p className="text-[11px] mb-2" style={{ color: "#6b7280" }}>
+                                    <p className="text-[11px] mb-2" style={{ color: "var(--muted)" }}>
                                       This question was generated from the following retrieved source material — not free-form by the model:
                                     </p>
-                                    <pre className="text-[11px] leading-relaxed whitespace-pre-wrap" style={{ color: "#374151", fontFamily: "inherit" }}>
+                                    <pre className="text-[11px] leading-relaxed whitespace-pre-wrap" style={{ color: "var(--muted)", fontFamily: "inherit" }}>
                                       {q.source_context}
                                     </pre>
                                   </div>
@@ -370,7 +370,7 @@ export default function ReportPage() {
                               {/* Audit meta row */}
                               <div
                                 className="rounded-xl px-4 py-3 flex flex-wrap gap-x-5 gap-y-1.5 text-[11px]"
-                                style={{ background: "var(--surface-alt)", color: "#6b7280" }}
+                                style={{ background: "var(--surface-alt)", color: "var(--muted)" }}
                               >
                                 {q.answer.submitted_at && (
                                   <span>
@@ -459,7 +459,7 @@ export default function ReportPage() {
                   {isum.signals.length > 0 ? (
                     <ul className="flex flex-col gap-1">
                       {isum.signals.map((sig) => (
-                        <li key={sig.code} className="text-[11px] flex justify-between gap-2" style={{ color: "#6b7280" }}>
+                        <li key={sig.code} className="text-[11px] flex justify-between gap-2" style={{ color: "var(--muted)" }}>
                           <span>{sig.detail}</span>
                           <span className="font-semibold" style={{ color: c }}>−{sig.weight}</span>
                         </li>
@@ -496,7 +496,7 @@ export default function ReportPage() {
                       className="text-[12px] font-semibold py-2 rounded-lg transition-all"
                       style={{
                         background: active ? o.c : "var(--surface-alt)",
-                        color: active ? "#fff" : "#4b5563",
+                        color: active ? "#fff" : "var(--muted)",
                         border: `1px solid ${active ? o.c : "var(--border)"}`,
                         opacity: savingOutcome ? 0.6 : 1,
                       }}
@@ -526,7 +526,7 @@ export default function ReportPage() {
                 ].map(item => (
                   <div key={item.label} className="flex justify-between items-center">
                     <span className="text-[12px]" style={{ color: "var(--cyan)" }}>{item.label}</span>
-                    <span className={`text-[12px] font-semibold ${item.cap ? "capitalize" : ""}`} style={{ color: "#0b0c15" }}>
+                    <span className={`text-[12px] font-semibold ${item.cap ? "capitalize" : ""}`} style={{ color: "var(--ink)" }}>
                       {item.value}
                     </span>
                   </div>
