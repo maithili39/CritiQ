@@ -326,7 +326,7 @@ export default function CandidateInterview() {
   if (stage === "loading") {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--bg-soft)" }}>
-        <span className="w-8 h-8 border-2 rounded-full spin" style={{ borderColor: "#e5e7eb", borderTopColor: "#0d9488" }} />
+        <span className="w-8 h-8 border-2 rounded-full spin" style={{ borderColor: "var(--border)", borderTopColor: "#d97706" }} />
       </div>
     );
   }
@@ -375,7 +375,7 @@ export default function CandidateInterview() {
                 <div
                   key={r.label}
                   className="flex items-start gap-3 p-4 rounded-xl"
-                  style={{ background: "#f9fafb", border: "1px solid #e5e7eb" }}
+                  style={{ background: "var(--surface-alt)", border: "1px solid var(--border)" }}
                 >
                   <span className="text-[20px] mt-0.5 flex-shrink-0">{r.icon}</span>
                   <div>
@@ -548,7 +548,7 @@ export default function CandidateInterview() {
           {/* Integrity status bar */}
           <div
             className="flex items-center gap-4 pt-2 text-[11px] muted border-t"
-            style={{ borderColor: "#f3f4f6" }}
+            style={{ borderColor: "var(--surface-alt)" }}
           >
             <span title="Camera status">
               📷 {cameraStream.current ? "Camera active" : "Camera unavailable"}

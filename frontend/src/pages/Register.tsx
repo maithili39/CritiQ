@@ -34,6 +34,22 @@ export default function RegisterPage() {
     <div className="page-stack">
       <Navbar />
       <div className="auth-wrap">
+        <div className="auth-side">
+          <div className="blob blob-1" />
+          <div className="blob blob-2" />
+          <div className="auth-side-inner fade-up">
+            <span className="auth-side-kicker">CritiQ / Screening Engine</span>
+            <p className="auth-side-quote">
+              Screen for <span className="gradient-text">skill, not scheduling luck.</span>
+            </p>
+            <ul className="auth-side-list">
+              <li><span className="dot" />Set up a role track in under a minute</li>
+              <li><span className="dot" />Adaptive questions grounded in real source material</li>
+              <li><span className="dot" />One clear, scored report per candidate</li>
+            </ul>
+          </div>
+        </div>
+
         <section className="auth-panel">
           <div className="auth-card fade-up">
             <div className="mb-6">

@@ -30,6 +30,22 @@ export default function LoginPage() {
     <div className="page-stack">
       <Navbar />
       <div className="auth-wrap">
+        <div className="auth-side">
+          <div className="blob blob-1" />
+          <div className="blob blob-2" />
+          <div className="auth-side-inner fade-up">
+            <span className="auth-side-kicker">CritiQ / Screening Engine</span>
+            <p className="auth-side-quote">
+              Pick up right where your last <span className="gradient-text">candidate session</span> left off.
+            </p>
+            <ul className="auth-side-list">
+              <li><span className="dot" />Live sessions, reports, and invites in one place</li>
+              <li><span className="dot" />Resume-aware, adaptive technical interviews</li>
+              <li><span className="dot" />Scored reports the moment a session ends</li>
+            </ul>
+          </div>
+        </div>
+
         <section className="auth-panel">
           <div className="auth-card fade-up">
             <div className="mb-6">

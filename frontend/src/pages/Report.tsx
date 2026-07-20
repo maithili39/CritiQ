@@ -98,7 +98,7 @@ export default function ReportPage() {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--bg-soft)" }}>
         <div className="flex flex-col items-center gap-3">
-          <span className="w-8 h-8 border-2 rounded-full spin" style={{ borderColor: "#e5e7eb", borderTopColor: "#0d9488" }} />
+          <span className="w-8 h-8 border-2 rounded-full spin" style={{ borderColor: "var(--border)", borderTopColor: "#d97706" }} />
           <span className="text-[14px] muted">Loading report</span>
         </div>
       </div>
@@ -233,8 +233,8 @@ export default function ReportPage() {
                       key={stat.label}
                       className="rounded-xl p-3.5 text-center"
                       style={{
-                        background: stat.warn ? "rgba(239,68,68,0.04)" : "#f9fafb",
-                        border: `1px solid ${stat.warn ? "rgba(239,68,68,0.15)" : "#e5e7eb"}`,
+                        background: stat.warn ? "rgba(239,68,68,0.04)" : "var(--surface-alt)",
+                        border: `1px solid ${stat.warn ? "rgba(239,68,68,0.15)" : "var(--border)"}`,
                       }}
                     >
                       <div
@@ -243,11 +243,11 @@ export default function ReportPage() {
                       >
                         {stat.value}
                       </div>
-                      <div className="text-[11px]" style={{ color: "#9ca3af" }}>{stat.label}</div>
+                      <div className="text-[11px]" style={{ color: "var(--cyan)" }}>{stat.label}</div>
                     </div>
                   ))}
                 </div>
-                <p className="text-[11px] mt-4 leading-relaxed" style={{ color: "#9ca3af" }}>
+                <p className="text-[11px] mt-4 leading-relaxed" style={{ color: "var(--cyan)" }}>
                   Integrity signals are collected automatically during the proctored interview session and stored for legal audit purposes. Flagged answers warrant human review before a hiring decision.
                 </p>
               </div>
@@ -266,14 +266,14 @@ export default function ReportPage() {
                     <div
                       key={q.id}
                       className="rounded-xl overflow-hidden transition-all"
-                      style={{ border: `1px solid ${isOpen ? "#e5e7eb" : "#f3f4f6"}` }}
+                      style={{ border: `1px solid ${isOpen ? "var(--border)" : "var(--surface-alt)"}` }}
                     >
                       <button
                         onClick={() => toggleQ(q.id)}
                         className="w-full flex items-center gap-3 px-5 py-4 text-left"
-                        style={{ background: isOpen ? "#f9fafb" : "#fff" }}
+                        style={{ background: isOpen ? "var(--surface-alt)" : "#fff" }}
                       >
-                        <span className="text-[11px] font-bold w-6 flex-shrink-0" style={{ color: "#0d9488" }}>
+                        <span className="text-[11px] font-bold w-6 flex-shrink-0" style={{ color: "#d97706" }}>
                           Q{i + 1}
                         </span>
                         {q.topic && (
@@ -292,7 +292,7 @@ export default function ReportPage() {
                         </div>
                         <svg
                           className="w-4 h-4 flex-shrink-0 transition-transform duration-200"
-                          style={{ color: "#9ca3af", transform: isOpen ? "rotate(180deg)" : "none" }}
+                          style={{ color: "var(--cyan)", transform: isOpen ? "rotate(180deg)" : "none" }}
                           fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
                         >
                           <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
@@ -300,15 +300,15 @@ export default function ReportPage() {
                       </button>
 
                       {isOpen && (
-                        <div className="px-5 pb-5 fade-in" style={{ borderTop: "1px solid #f3f4f6" }}>
+                        <div className="px-5 pb-5 fade-in" style={{ borderTop: "1px solid var(--surface-alt)" }}>
                           <p className="text-[14px] font-medium pt-4 mb-4 leading-relaxed" style={{ color: "#0b0c15" }}>
                             {q.text}
                           </p>
                           {q.answer ? (
                             <div className="flex flex-col gap-3">
-                              <div className="rounded-xl p-4" style={{ background: "#f9fafb", border: "1px solid #e5e7eb" }}>
+                              <div className="rounded-xl p-4" style={{ background: "var(--surface-alt)", border: "1px solid var(--border)" }}>
                                 <div className="flex justify-between items-center mb-2">
-                                  <span className="text-[11px] font-bold uppercase tracking-wide" style={{ color: "#9ca3af" }}>
+                                  <span className="text-[11px] font-bold uppercase tracking-wide" style={{ color: "var(--cyan)" }}>
                                     Answer
                                   </span>
                                   {q.answer.score != null && (
@@ -319,7 +319,7 @@ export default function ReportPage() {
                                 </div>
                                 <p className="text-[13px] leading-relaxed" style={{ color: "#4b5563" }}>{q.answer.text}</p>
                                 {q.answer.rationale && (
-                                  <p className="text-[12px] mt-3 leading-relaxed" style={{ color: "#0d9488" }}>
+                                  <p className="text-[12px] mt-3 leading-relaxed" style={{ color: "#d97706" }}>
                                     <span className="font-semibold">Feedback:</span> {q.answer.rationale}
                                   </p>
                                 )}
@@ -353,7 +353,7 @@ export default function ReportPage() {
                               {/* ---- RAG traceability: what this question was grounded in ---- */}
                               {q.source_context && (
                                 <details className="rounded-xl" style={{ background: "#f0f7f6", border: "1px solid #d6e9e6" }}>
-                                  <summary className="cursor-pointer px-4 py-2.5 text-[11px] font-bold uppercase tracking-wide" style={{ color: "#0d9488" }}>
+                                  <summary className="cursor-pointer px-4 py-2.5 text-[11px] font-bold uppercase tracking-wide" style={{ color: "#d97706" }}>
                                     📎 Grounded in knowledge base
                                   </summary>
                                   <div className="px-4 pb-4">
@@ -370,7 +370,7 @@ export default function ReportPage() {
                               {/* Audit meta row */}
                               <div
                                 className="rounded-xl px-4 py-3 flex flex-wrap gap-x-5 gap-y-1.5 text-[11px]"
-                                style={{ background: "#f3f4f6", color: "#6b7280" }}
+                                style={{ background: "var(--surface-alt)", color: "#6b7280" }}
                               >
                                 {q.answer.submitted_at && (
                                   <span>
@@ -391,7 +391,7 @@ export default function ReportPage() {
                               </div>
                             </div>
                           ) : (
-                            <span className="text-[13px] italic" style={{ color: "#9ca3af" }}>No answer submitted</span>
+                            <span className="text-[13px] italic" style={{ color: "var(--cyan)" }}>No answer submitted</span>
                           )}
                         </div>
                       )}
@@ -404,7 +404,7 @@ export default function ReportPage() {
 
           <div className="flex flex-col gap-4 fade-up delay-2">
             <div className="card p-6 text-center">
-              <div className="text-[11px] font-bold uppercase tracking-widest mb-4" style={{ color: "#9ca3af" }}>
+              <div className="text-[11px] font-bold uppercase tracking-widest mb-4" style={{ color: "var(--cyan)" }}>
                 Overall Score
               </div>
               <div
@@ -413,7 +413,7 @@ export default function ReportPage() {
               >
                 {score.toFixed(1)}
               </div>
-              <div className="text-[12px] mb-5" style={{ color: "#9ca3af" }}>out of 10</div>
+              <div className="text-[12px] mb-5" style={{ color: "var(--cyan)" }}>out of 10</div>
               <div className="progress-track">
                 <div
                   className="progress-fill"
@@ -426,7 +426,7 @@ export default function ReportPage() {
               className="rounded-2xl p-5 text-center"
               style={{ background: rec.bg, border: `1px solid ${rec.border}` }}
             >
-              <div className="text-[11px] font-bold uppercase tracking-widest mb-3" style={{ color: "#9ca3af" }}>
+              <div className="text-[11px] font-bold uppercase tracking-widest mb-3" style={{ color: "var(--cyan)" }}>
                 Recommendation
               </div>
               <div className="flex items-center justify-center gap-2">
@@ -441,14 +441,14 @@ export default function ReportPage() {
               const c = isum.risk_level === "low" ? "#16a34a" : isum.risk_level === "medium" ? "#f59e0b" : "#ef4444";
               return (
                 <div className="card p-5">
-                  <div className="text-[11px] font-bold uppercase tracking-widest mb-3" style={{ color: "#9ca3af" }}>
+                  <div className="text-[11px] font-bold uppercase tracking-widest mb-3" style={{ color: "var(--cyan)" }}>
                     Integrity Confidence
                   </div>
                   <div className="flex items-end gap-2 mb-2">
                     <span className="text-[40px] font-bold leading-none" style={{ color: c, fontFamily: "'Outfit', sans-serif" }}>
                       {isum.confidence}
                     </span>
-                    <span className="text-[12px] mb-1" style={{ color: "#9ca3af" }}>/ 100</span>
+                    <span className="text-[12px] mb-1" style={{ color: "var(--cyan)" }}>/ 100</span>
                     <span className="ml-auto mb-1 text-[11px] font-bold uppercase tracking-wide" style={{ color: c }}>
                       {isum.risk_level} risk
                     </span>
@@ -466,7 +466,7 @@ export default function ReportPage() {
                       ))}
                     </ul>
                   ) : (
-                    <p className="text-[11px]" style={{ color: "#9ca3af" }}>No integrity signals fired across the session.</p>
+                    <p className="text-[11px]" style={{ color: "var(--cyan)" }}>No integrity signals fired across the session.</p>
                   )}
                 </div>
               );
@@ -474,10 +474,10 @@ export default function ReportPage() {
 
             {/* ---- Recruiter outcome feedback (ground truth for calibration) ---- */}
             <div className="card p-5">
-              <div className="text-[11px] font-bold uppercase tracking-widest mb-1" style={{ color: "#9ca3af" }}>
+              <div className="text-[11px] font-bold uppercase tracking-widest mb-1" style={{ color: "var(--cyan)" }}>
                 Actual Hiring Outcome
               </div>
-              <p className="text-[11px] mb-3 leading-relaxed" style={{ color: "#9ca3af" }}>
+              <p className="text-[11px] mb-3 leading-relaxed" style={{ color: "var(--cyan)" }}>
                 Record what really happened — this calibrates the AI's scores against real hires over time.
               </p>
               <div className="grid grid-cols-2 gap-2">
@@ -485,7 +485,7 @@ export default function ReportPage() {
                   { key: "hired_strong", label: "Strong hire", c: "#16a34a" },
                   { key: "hired", label: "Hired", c: "#16a34a" },
                   { key: "rejected", label: "Rejected", c: "#ef4444" },
-                  { key: "no_show", label: "No show", c: "#9ca3af" },
+                  { key: "no_show", label: "No show", c: "var(--cyan)" },
                 ] as { key: Outcome; label: string; c: string }[]).map((o) => {
                   const active = session.outcome === o.key;
                   return (
@@ -495,9 +495,9 @@ export default function ReportPage() {
                       onClick={() => saveOutcome(o.key)}
                       className="text-[12px] font-semibold py-2 rounded-lg transition-all"
                       style={{
-                        background: active ? o.c : "#f9fafb",
+                        background: active ? o.c : "var(--surface-alt)",
                         color: active ? "#fff" : "#4b5563",
-                        border: `1px solid ${active ? o.c : "#e5e7eb"}`,
+                        border: `1px solid ${active ? o.c : "var(--border)"}`,
                         opacity: savingOutcome ? 0.6 : 1,
                       }}
                     >
@@ -507,14 +507,14 @@ export default function ReportPage() {
                 })}
               </div>
               {session.outcome_at && (
-                <p className="text-[10px] mt-2" style={{ color: "#9ca3af" }}>
+                <p className="text-[10px] mt-2" style={{ color: "var(--cyan)" }}>
                   Recorded {new Date(session.outcome_at).toLocaleDateString("en-GB")}
                 </p>
               )}
             </div>
 
             <div className="card p-5">
-              <div className="text-[11px] font-bold uppercase tracking-widest mb-4" style={{ color: "#9ca3af" }}>
+              <div className="text-[11px] font-bold uppercase tracking-widest mb-4" style={{ color: "var(--cyan)" }}>
                 Candidate Details
               </div>
               <div className="flex flex-col gap-3">
@@ -525,7 +525,7 @@ export default function ReportPage() {
                   { label: "Answered",  value: `${questions.filter(q => q.answer).length} of ${questions.length}` },
                 ].map(item => (
                   <div key={item.label} className="flex justify-between items-center">
-                    <span className="text-[12px]" style={{ color: "#9ca3af" }}>{item.label}</span>
+                    <span className="text-[12px]" style={{ color: "var(--cyan)" }}>{item.label}</span>
                     <span className={`text-[12px] font-semibold ${item.cap ? "capitalize" : ""}`} style={{ color: "#0b0c15" }}>
                       {item.value}
                     </span>
@@ -537,24 +537,24 @@ export default function ReportPage() {
             {/* Compact integrity summary in sidebar */}
             {hasIntegrityData && (
               <div className="card p-5">
-                <div className="text-[11px] font-bold uppercase tracking-widest mb-3" style={{ color: "#9ca3af" }}>
+                <div className="text-[11px] font-bold uppercase tracking-widest mb-3" style={{ color: "var(--cyan)" }}>
                   Integrity
                 </div>
                 <div className="flex flex-col gap-2">
                   <div className="flex justify-between items-center">
-                    <span className="text-[12px]" style={{ color: "#9ca3af" }}>Flagged answers</span>
+                    <span className="text-[12px]" style={{ color: "var(--cyan)" }}>Flagged answers</span>
                     <span className="text-[12px] font-semibold" style={{ color: flaggedCount > 0 ? "#ef4444" : "#16a34a" }}>
                       {flaggedCount} / {answeredQs.length}
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-[12px]" style={{ color: "#9ca3af" }}>Paste events</span>
+                    <span className="text-[12px]" style={{ color: "var(--cyan)" }}>Paste events</span>
                     <span className="text-[12px] font-semibold" style={{ color: pasteCount > 0 ? "#ef4444" : "#16a34a" }}>
                       {pasteCount}
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-[12px]" style={{ color: "#9ca3af" }}>Tab switches</span>
+                    <span className="text-[12px]" style={{ color: "var(--cyan)" }}>Tab switches</span>
                     <span className="text-[12px] font-semibold" style={{ color: totalTabSwitches > 0 ? "#f59e0b" : "#16a34a" }}>
                       {totalTabSwitches}
                     </span>
@@ -565,7 +565,7 @@ export default function ReportPage() {
 
             {parsed_resume?.skills?.length > 0 && (
               <div className="card p-5">
-                <div className="text-[11px] font-bold uppercase tracking-widest mb-4" style={{ color: "#9ca3af" }}>
+                <div className="text-[11px] font-bold uppercase tracking-widest mb-4" style={{ color: "var(--cyan)" }}>
                   Detected Skills
                 </div>
                 <div className="flex flex-wrap gap-1.5">

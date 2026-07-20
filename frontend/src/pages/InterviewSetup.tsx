@@ -200,7 +200,7 @@ export default function SetupPage() {
                           style={{
                             border: active ? "1.5px solid var(--brand)" : "1.5px solid var(--border)",
                             background: active ? "var(--brand-soft)" : "#fff",
-                            boxShadow: active ? "0 0 0 3px rgba(13,148,136,0.09)" : "none",
+                            boxShadow: active ? "var(--ring)" : "none",
                           }}
                         >
                           <div className="flex items-center gap-2 mb-1">
@@ -208,7 +208,7 @@ export default function SetupPage() {
                             {!r.is_builtin && (
                               <span
                                 className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded"
-                                style={{ background: "rgba(99,102,241,0.08)", color: "#6366f1" }}
+                                style={{ background: "var(--accent-soft)", color: "var(--accent)" }}
                               >
                                 Custom
                               </span>
@@ -275,14 +275,21 @@ export default function SetupPage() {
             </form>
           </section>
 
-          <aside className="card p-6 fade-up delay-1" style={{ background: "linear-gradient(180deg,#ffffff 0%, #fafbff 100%)" }}>
+          <aside className="card p-6 fade-up delay-1" style={{ background: "linear-gradient(180deg, var(--surface) 0%, var(--surface-alt) 100%)" }}>
             <h3 className="text-[20px] font-bold mb-5">Interview flow</h3>
             <div className="flex flex-col gap-4">
               {HOW.map((item) => (
-                <div key={item.n} className="p-4 rounded-xl" style={{ border: "1px solid var(--border)", background: "#fff" }}>
-                  <div className="eyebrow mb-1">{item.n}</div>
-                  <div className="text-[14px] font-semibold mb-1">{item.title}</div>
-                  <p className="text-[13px] muted leading-relaxed">{item.desc}</p>
+                <div key={item.n} className="p-4 rounded-xl flex gap-3" style={{ border: "1px solid var(--border)", background: "var(--surface)" }}>
+                  <div
+                    className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-[12px] font-extrabold"
+                    style={{ background: "var(--gradient-brand)", color: "#fff" }}
+                  >
+                    {item.n.replace(/^0/, "")}
+                  </div>
+                  <div>
+                    <div className="text-[14px] font-semibold mb-1">{item.title}</div>
+                    <p className="text-[13px] muted leading-relaxed">{item.desc}</p>
+                  </div>
                 </div>
               ))}
             </div>

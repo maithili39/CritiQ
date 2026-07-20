@@ -10,7 +10,7 @@ function CalibrationBanner({ cal }: { cal: Calibration }) {
   if (cal.total_labeled === 0) return null;
   const corr = cal.correlation;
   // Pearson r: >0.5 strong, 0.3-0.5 moderate, else weak/insufficient.
-  const corrColor = corr == null ? "#9ca3af" : corr >= 0.5 ? "#34d399" : corr >= 0.3 ? "#fbbf24" : "#f87171";
+  const corrColor = corr == null ? "var(--cyan)" : corr >= 0.5 ? "#34d399" : corr >= 0.3 ? "#fbbf24" : "#f87171";
   const corrLabel = corr == null ? "Need ≥3 outcomes" : corr >= 0.5 ? "Strong" : corr >= 0.3 ? "Moderate" : "Weak";
   const { true_positive: tp, false_positive: fp, false_negative: fn, true_negative: tn } = cal.confusion;
   const decided = tp + fp + fn + tn;

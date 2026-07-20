@@ -1,12 +1,8 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import SiteFooter from "@/components/SiteFooter";
-
-const STATS = [
-  { num: "8", label: "Questions per assessment, generated live" },
-  { num: "2", label: "Specialized role tracks" },
-  { num: "100%", label: "Questions grounded in cited source material" },
-];
+import { getRoles, RoleInfo } from "@/lib/api";
 
 const FEATURES = [
   {
@@ -28,7 +24,6 @@ const FEATURES = [
     bullets: [
       "Role-specific content tracks",
       "Context-aware questioning sequence",
-      "Clear source-backed evaluation narrative",
     ],
   },
   {
@@ -38,201 +33,186 @@ const FEATURES = [
     icon: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z",
     bullets: [
       "Per-answer scoring as soon as you submit",
-      "Transparent rationale with strengths and gaps",
-      "Final recommendation with topic-by-topic breakdown",
+      "Topic-by-topic recommendation",
     ],
   },
 ];
 
-const ROLES = [
+// Shown until the live role list loads, and as a fallback if the request fails.
+const FALLBACK_ROLES: RoleInfo[] = [
   {
-    id:     "ai_ml",
-    label:  "AI / ML Engineer",
-    desc: "Machine learning depth, model strategy, and practical engineering fluency.",
-    topics: ["Neural Networks", "Model Evaluation", "Feature Engineering", "MLOps", "PyTorch / TF", "Transformers"],
+    slug: "ai_ml",
+    label: "AI / ML Engineer",
+    description: "Machine learning depth, model strategy, and practical engineering fluency.",
+    topics: ["Neural Networks", "Model Evaluation", "MLOps", "Transformers"],
+    is_builtin: true,
   },
   {
-    id:     "data_science",
-    label:  "Data Scientist",
-    desc: "Statistical judgement, experimental rigor, and clear analysis communication.",
-    topics: ["Statistical Inference", "EDA", "Classification & Regression", "A/B Testing", "SQL & Pandas", "Visualisation"],
+    slug: "data_science",
+    label: "Data Scientist",
+    description: "Statistical judgement, experimental rigor, and clear analysis communication.",
+    topics: ["Statistical Inference", "A/B Testing", "SQL & Pandas", "EDA"],
+    is_builtin: true,
   },
 ];
 
 export default function Home() {
+  const [roles, setRoles] = useState<RoleInfo[]>(FALLBACK_ROLES);
+
+  useEffect(() => {
+    getRoles()
+      .then((res) => {
+        if (res.roles?.length) setRoles(res.roles);
+      })
+      .catch(() => {
+        // Keep the fallback list — the homepage should never show an empty state.
+      });
+  }, []);
+
   return (
     <div className="page-stack">
       <Navbar />
 
-      <section className="relative pt-10 pb-16 md:pt-16 md:pb-24 overflow-hidden">
-        <div className="shell shell-wide relative z-10 hero-grid">
-          <div className="fade-up">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-6" style={{ background: "var(--surface-alt)", border: "1px solid var(--border-strong)" }}>
-              <span className="w-2 h-2 rounded-full" style={{ background: "var(--brand)", boxShadow: "0 0 10px rgba(13,148,136,0.6)" }} />
-              <span className="text-[12px] font-semibold tracking-wide uppercase" style={{ color: "var(--ink)" }}>The New Standard for Technical Hiring</span>
+      <section className="relative overflow-hidden pt-12 pb-8 md:pt-16">
+        <div className="blob blob-1" />
+        <div className="blob blob-2" />
+        <div className="blob blob-3" />
+
+        <div className="shell shell-wide relative z-10">
+          <div className="bento-grid">
+            {/* Manifesto — oversized, dark, anchors the whole grid */}
+            <div className="bento-item bento-manifesto fade-up">
+              <span className="text-[12px] font-bold tracking-[0.2em] uppercase" style={{ color: "rgba(255,255,255,0.6)" }}>
+                CritiQ / Screening Engine
+              </span>
+              <h1 className="font-extrabold tracking-tight mt-3 mb-5" style={{ fontSize: "clamp(34px, 4.6vw, 56px)", lineHeight: 1.02, color: "#fff" }}>
+                Interview
+                <br />
+                like it's
+                <br />
+                <span className="gradient-text">already decided.</span>
+              </h1>
+              <p className="text-[15px] leading-relaxed mb-7" style={{ maxWidth: "420px", color: "rgba(255,255,255,0.72)" }}>
+                CritiQ parses resumes, runs adaptive technical interviews, and scores every answer live — so the report writes itself.
+              </p>
+              <div className="flex items-center gap-3 flex-wrap">
+                <Link to="/interview/setup" className="btn btn-primary" style={{ padding: "0.85rem 1.9rem", borderRadius: "999px" }}>
+                  Start a session
+                </Link>
+                <Link to="/register" className="btn" style={{ padding: "0.85rem 1.7rem", borderRadius: "999px", color: "#fff", border: "1.5px solid rgba(255,255,255,0.28)" }}>
+                  Create free account
+                </Link>
+              </div>
             </div>
 
-            <h1 className="font-extrabold leading-[1.05] tracking-tight mb-5" style={{ fontSize: "clamp(36px, 5vw, 58px)", color: "var(--ink)" }}>
-              AI-powered candidate screening for <span style={{ color: "var(--brand)" }}>technical teams</span>.
-            </h1>
-
-            <p className="text-[17px] md:text-[19px] leading-relaxed mb-8" style={{ maxWidth: "560px", color: "var(--muted)" }}>
-              CritiQ instantly parses resumes, conducts adaptive technical interviews, and delivers comprehensive, scored reports to help you make confident hiring decisions.
-            </p>
-
-            <div className="flex items-center gap-4 flex-wrap fade-up delay-1">
-              <Link to="/interview/setup" className="btn btn-primary" style={{ padding: "1rem 2.6rem", fontSize: "17px", borderRadius: "999px" }}>
-                Start a session
-              </Link>
-              <Link to="/register" className="btn btn-secondary" style={{ padding: "1rem 2.6rem", fontSize: "17px", borderRadius: "999px", background: "#fff" }}>
-                Create a free account
-              </Link>
+            {/* Live transcript-style visual, fills the space beside the manifesto */}
+            <div className="bento-item bento-visual fade-up delay-1">
+              <div className="transcript-head">
+                <span className="dot-cluster"><i /><i /><i /></span>
+                <span className="text-[11px] font-semibold tracking-wide uppercase" style={{ color: "var(--muted)" }}>Live Assessment</span>
+              </div>
+              <div className="transcript-line">
+                <span className="transcript-tag">Q</span>
+                <p>Walk me through how you'd validate a model that overfits during cross-validation.</p>
+              </div>
+              <div className="transcript-line transcript-line-muted">
+                <span className="transcript-tag transcript-tag-alt">A</span>
+                <p>Candidate response received — scoring in progress…</p>
+              </div>
+              <div className="transcript-score">
+                <div className="transcript-score-num">8.4<span>/10</span></div>
+                <div className="progress-track" style={{ flex: 1 }}>
+                  <div className="progress-fill" style={{ width: "84%", background: "var(--gradient-brand)" }} />
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2 mt-3">
+                <span className="badge badge-brand">Strong: regularization</span>
+                <span className="badge">Gap: edge cases</span>
+              </div>
             </div>
-          </div>
 
-          <div className="fade-up delay-2 relative">
-            <div className="hero-panel" style={{ padding: "0.6rem" }}>
-              <img
-                src="https://images.unsplash.com/photo-1616587226960-4a03badbe8bf?w=900&q=80&auto=format&fit=crop"
-                alt="Candidate taking a video technical interview on a laptop"
-                className="w-full h-auto"
-                style={{ borderRadius: "0.9rem", display: "block", objectFit: "cover", aspectRatio: "4 / 3" }}
-                loading="eager"
-              />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="section section-soft">
-        <div className="shell shell-wide stat-grid">
-          {STATS.map((s) => (
-            <article key={s.label} className="stat-card fade-up">
-              <strong>{s.num}</strong>
-              <span>{s.label}</span>
+            {/* Stat cells — two, side by side */}
+            <article className="bento-item bento-stat fade-up delay-2" style={{ background: "var(--gradient-brand)" }}>
+              <strong style={{ color: "#fff" }}>8</strong>
+              <span style={{ color: "rgba(255,255,255,0.85)" }}>Live questions per assessment</span>
             </article>
-          ))}
-        </div>
-      </section>
 
-      <section className="section">
-        <div className="shell shell-wide">
-          <div className="text-center mb-16 flex flex-col items-center">
-            <span 
-              className="inline-flex items-center px-4 py-1.5 rounded-full mb-6 font-bold tracking-widest uppercase text-[11px]" 
-              style={{ background: "var(--brand-soft)", color: "var(--brand)", border: "1px solid var(--brand-line)" }}
-            >
-              How The Platform Works
-            </span>
-            <h2 className="font-bold tracking-tight mb-5" style={{ fontSize: "clamp(36px, 5vw, 52px)", lineHeight: "1.15", color: "var(--ink)", maxWidth: "800px" }}>
-              Built for hiring teams that need <span style={{ color: "var(--brand)" }}>reliable interview outcomes</span>
-            </h2>
-            <p className="muted text-[19px] leading-relaxed" style={{ maxWidth: "700px" }}>
-              Designed for client-facing delivery with a refined workflow, clear pacing, and consistent decision support.
-            </p>
-          </div>
+            <article className="bento-item bento-stat-duo fade-up delay-2">
+              <div className="bento-stat-duo-col">
+                <strong className="gradient-text">{roles.length}</strong>
+                <span className="muted">Specialized role tracks</span>
+              </div>
+              <div className="bento-stat-duo-divider" />
+              <div className="bento-stat-duo-col">
+                <strong className="gradient-text">100%</strong>
+                <span className="muted">Source-grounded questions</span>
+              </div>
+            </article>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Feature cells */}
             {FEATURES.map((f, idx) => (
-              <article 
-                key={f.tag} 
-                className={`card group p-8 fade-up delay-${Math.min(idx + 1, 4)}`} 
-                style={{ transition: "all 0.3s cubic-bezier(0.22, 1, 0.36, 1)", position: "relative", overflow: "hidden" }}
-              >
-                <div className="absolute top-0 right-0 w-40 h-40 bg-[radial-gradient(circle_at_top_right,var(--brand-soft),transparent_70%)] opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-                
-                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-6 shadow-sm relative z-10" style={{ background: "linear-gradient(135deg, rgba(13,148,136,0.12), rgba(13,148,136,0.02))", border: "1px solid var(--brand-line)", color: "var(--brand)" }}>
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+              <article key={f.tag} className={`bento-item bento-feature fade-up delay-${Math.min(idx + 1, 4)}`}>
+                <div className="inline-flex items-center justify-center w-11 h-11 rounded-xl mb-4" style={{ background: "var(--gradient-brand-soft)", border: "1px solid var(--brand-line)", color: "var(--brand)" }}>
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                     <path strokeLinecap="round" strokeLinejoin="round" d={f.icon} />
                   </svg>
                 </div>
-                
-                <div className="text-[12px] font-bold tracking-widest uppercase mb-3 relative z-10" style={{ color: "var(--brand)" }}>{f.tag}</div>
-                <h3 className="text-[22px] font-bold mb-3 relative z-10" style={{ color: "var(--ink)", lineHeight: 1.25 }}>{f.title}</h3>
-                <p className="text-[15px] muted leading-relaxed mb-6 relative z-10">{f.desc}</p>
-                
-                <div className="w-full h-px mb-5 relative z-10" style={{ background: "linear-gradient(90deg, var(--border) 0%, transparent 100%)" }} />
-                
-                <ul className="flex flex-col gap-3 text-[14px] font-medium relative z-10" style={{ color: "var(--ink)" }}>
+                <div className="text-[11px] font-bold tracking-widest uppercase mb-2" style={{ color: "var(--brand)" }}>{f.tag}</div>
+                <h3 className="text-[18px] font-bold mb-2" style={{ color: "var(--ink)", lineHeight: 1.3 }}>{f.title}</h3>
+                <p className="text-[14px] muted leading-relaxed mb-4">{f.desc}</p>
+                <ul className="flex flex-col gap-2 text-[13px] font-medium mt-auto" style={{ color: "var(--ink)" }}>
                   {f.bullets.map((item) => (
-                    <li key={item} className="flex items-start gap-3">
-                      <svg className="w-5 h-5 flex-shrink-0 mt-[2px]" fill="none" viewBox="0 0 24 24" stroke="var(--brand)" strokeWidth={2.5}>
+                    <li key={item} className="flex items-start gap-2">
+                      <svg className="w-4 h-4 flex-shrink-0 mt-[2px]" fill="none" viewBox="0 0 24 24" stroke="var(--brand)" strokeWidth={2.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                       </svg>
-                      <span style={{ color: "var(--muted)", lineHeight: 1.5 }}>{item}</span>
+                      <span style={{ color: "var(--muted)" }}>{item}</span>
                     </li>
                   ))}
                 </ul>
               </article>
             ))}
-          </div>
-        </div>
-      </section>
 
-      <section className="section section-soft">
-        <div className="shell">
-          <div className="text-center mb-12">
-            <div className="eyebrow mb-4">Role Coverage</div>
-            <h2 className="font-bold tracking-tight" style={{ fontSize: "clamp(28px, 4vw, 40px)", marginBottom: "0.8rem" }}>
-              Curated tracks for modern data and engineering hiring
-            </h2>
-            <p className="muted text-[16px]" style={{ maxWidth: "640px", margin: "0 auto" }}>
-              Each track includes focused topic areas so assessments remain comparable across candidates.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {ROLES.map((r) => (
-              <article key={r.id} className="card card-hover p-7">
-                <div className="eyebrow mb-3">{r.id === "ai_ml" ? "AI / ML Track" : "Data Science Track"}</div>
-                <h3 className="text-[24px] font-bold mb-2.5">{r.label}</h3>
-                <p className="muted text-[14px] leading-relaxed mb-5">{r.desc}</p>
-                <div className="flex flex-wrap gap-2 mb-5">
+            {/* Role cells — pulled live from /sessions/roles so custom tracks appear automatically */}
+            {roles.map((r) => (
+              <article key={r.slug} className="bento-item bento-role fade-up">
+                <div className="eyebrow mb-2">{r.is_builtin ? "Built-in Track" : "Custom Track"}</div>
+                <h3 className="text-[20px] font-bold mb-2">{r.label}</h3>
+                <p className="muted text-[13px] leading-relaxed mb-4">{r.description}</p>
+                <div className="flex flex-wrap gap-1.5 mb-4">
                   {r.topics.map((topic) => <span key={topic} className="badge">{topic}</span>)}
                 </div>
-                <Link to="/interview/setup" className="btn btn-subtle btn-sm">Launch this track</Link>
+                <Link to="/interview/setup" className="btn btn-subtle btn-sm mt-auto">Launch this track →</Link>
               </article>
             ))}
+
+            {/* About / mission — wide banner cell */}
+            <div className="bento-item bento-about fade-up">
+              <div className="bento-about-text">
+                <div className="eyebrow mb-3" style={{ color: "rgba(255,255,255,0.75)" }}>About Us</div>
+                <h2 className="font-bold tracking-tight mb-3" style={{ fontSize: "clamp(24px, 3.2vw, 34px)", color: "#fff" }}>
+                  Unbiased, skills-first technical hiring — built into the interview itself.
+                </h2>
+                <p className="text-[15px] leading-relaxed" style={{ color: "rgba(255,255,255,0.78)" }}>
+                  CritiQ automates the technical interview with adaptive, source-grounded AI — uncovering real talent while cutting scheduling bottlenecks and first-round bias.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      <section id="about" className="section" style={{ background: "var(--bg)" }}>
-        <div className="shell shell-wide hero-grid" style={{ gridTemplateColumns: "1fr 1.15fr" }}>
-          <div className="fade-up">
-            <img
-              src="https://images.unsplash.com/photo-1497015455546-1da71faf8d06?w=900&q=80&auto=format&fit=crop"
-              alt="Candidate preparing for a remote technical interview"
-              className="w-full h-auto card"
-              style={{ borderRadius: "1.2rem", display: "block", objectFit: "cover", aspectRatio: "4 / 3" }}
-              loading="lazy"
-            />
-          </div>
-          <div className="fade-up delay-1">
-            <div className="eyebrow mb-4">About Us</div>
-            <h2 className="font-bold tracking-tight mb-6" style={{ fontSize: "clamp(30px, 5vw, 42px)", color: "var(--ink)" }}>
-              We're building the future of unbiased, skills-first technical hiring.
-            </h2>
-            <p className="text-[17px] leading-relaxed muted">
-              CritiQ is an AI-powered screening platform designed to give engineering teams high-signal, objective candidate assessments. By automating the technical interview process with adaptive, source-grounded AI, we help you uncover true talent while eliminating scheduling bottlenecks and human bias from the first-round screening process.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <section className="section section-soft">
+      <section className="section-soft" style={{ paddingBlock: "clamp(2.4rem, 5vw, 4rem)" }}>
         <div className="shell text-center">
-          <h2 className="font-bold tracking-tight mb-4" style={{ fontSize: "clamp(30px, 5vw, 48px)", color: "var(--ink)" }}>
+          <h2 className="font-bold tracking-tight mb-4" style={{ fontSize: "clamp(28px, 4.5vw, 44px)", color: "var(--ink)" }}>
             Ready to deliver a stronger hiring experience?
           </h2>
-          <p className="text-[17px] muted" style={{ maxWidth: "640px", margin: "0 auto 2rem" }}>
+          <p className="text-[16px] muted mb-7" style={{ maxWidth: "600px", margin: "0 auto 1.8rem" }}>
             Start your next candidate interview in minutes and get a scored report the moment it's done.
           </p>
           <div className="flex items-center justify-center gap-3 flex-wrap">
             <Link to="/interview/setup" className="btn btn-primary">Start interview now</Link>
-            <Link to="/sessions" className="btn btn-secondary">
-              View existing sessions
-            </Link>
+            <Link to="/sessions" className="btn btn-secondary">View existing sessions</Link>
           </div>
         </div>
       </section>
