@@ -57,136 +57,134 @@ export default function Home() {
     <div className="page-stack">
       <Navbar />
 
-      {/* Hero Section */}
-      <section className="relative overflow-hidden pt-12 pb-16 md:pt-20 md:pb-20">
+      <section className="relative overflow-hidden pt-12 pb-8 md:pt-16">
         <div className="blob blob-1" />
         <div className="blob blob-2" />
         <div className="blob blob-3" />
 
         <div className="shell shell-wide relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-            <div className="fade-up">
-              <h1 className="font-extrabold leading-tight tracking-tight mb-6" style={{ fontSize: "clamp(40px, 5.5vw, 60px)", color: "var(--ink)" }}>
-                Interview like it's <span className="gradient-text">already decided.</span>
+          <div className="bento-grid">
+            {/* Manifesto */}
+            <div className="bento-item bento-manifesto fade-up">
+              <span className="text-[12px] font-bold tracking-[0.2em] uppercase" style={{ color: "rgba(255,255,255,0.6)" }}>
+                CritiQ / Screening Engine
+              </span>
+              <h1 className="font-extrabold tracking-tight mt-4 mb-5" style={{ fontSize: "clamp(36px, 5vw, 56px)", lineHeight: 1.02, color: "#fff" }}>
+                Interview
+                <br />
+                like it's
+                <br />
+                <span className="gradient-text">already decided.</span>
               </h1>
-              <p className="text-[18px] leading-relaxed mb-8" style={{ maxWidth: "540px", color: "var(--muted)" }}>
+              <p className="text-[15px] leading-relaxed mb-7" style={{ maxWidth: "420px", color: "rgba(255,255,255,0.78)" }}>
                 CritiQ parses resumes, runs adaptive technical interviews, and scores every answer live — so the report writes itself.
               </p>
               <div className="flex items-center gap-3 flex-wrap">
-                <Link to="/interview/setup" className="btn btn-primary" style={{ padding: "0.9rem 2.2rem", borderRadius: "999px", fontSize: "16px" }}>
+                <Link to="/interview/setup" className="btn btn-primary" style={{ padding: "0.85rem 1.9rem", borderRadius: "999px" }}>
                   Start a session
                 </Link>
-                <Link to="/register" className="btn" style={{ padding: "0.9rem 2rem", borderRadius: "999px", color: "var(--ink)", border: "1.5px solid var(--border-strong)", fontSize: "16px" }}>
+                <Link to="/register" className="btn" style={{ padding: "0.85rem 1.7rem", borderRadius: "999px", color: "#fff", border: "1.5px solid rgba(255,255,255,0.28)" }}>
                   Create free account
                 </Link>
               </div>
             </div>
 
-            <div className="fade-up delay-1 relative hidden lg:block">
-              <div className="absolute -inset-4 rounded-2xl opacity-60" style={{ background: "var(--gradient-brand-soft)", filter: "blur(20px)", zIndex: 0 }} />
-              <img
-                src="https://images.unsplash.com/photo-1531482615713-2afd69097998?w=700&q=80&auto=format&fit=crop"
-                alt="Candidate taking interview"
-                className="w-full rounded-xl border border-amber-900/20 shadow-lg relative z-10"
-                style={{ aspectRatio: "4/3", objectFit: "cover" }}
-                loading="eager"
-              />
+            {/* Live Assessment Visual */}
+            <div className="bento-item bento-visual fade-up delay-1">
+              <div className="transcript-head">
+                <span className="dot-cluster"><i /><i /><i /></span>
+                <span className="text-[11px] font-semibold tracking-wide uppercase" style={{ color: "var(--muted)" }}>Live Assessment</span>
+              </div>
+              <div className="transcript-line">
+                <span className="transcript-tag">Q</span>
+                <p>Walk me through how you'd validate a model that overfits during cross-validation.</p>
+              </div>
+              <div className="transcript-line transcript-line-muted">
+                <span className="transcript-tag transcript-tag-alt">A</span>
+                <p>Candidate response received — scoring in progress…</p>
+              </div>
+              <div className="transcript-score">
+                <div className="transcript-score-num">8.4<span>/10</span></div>
+                <div className="progress-track" style={{ flex: 1 }}>
+                  <div className="progress-fill" style={{ width: "84%", background: "var(--gradient-brand)" }} />
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2 mt-3">
+                <span className="badge badge-brand">Strong: regularization</span>
+                <span className="badge">Gap: edge cases</span>
+              </div>
             </div>
-          </div>
 
-          {/* Stats inline in hero */}
-          <div className="grid grid-cols-3 gap-4 mt-12 md:mt-16 fade-up delay-2">
-            <div className="text-center">
-              <div className="text-4xl md:text-5xl font-extrabold mb-2" style={{ color: "var(--brand)" }}>8</div>
-              <p className="text-sm md:text-base muted">Live questions per assessment</p>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl md:text-5xl font-extrabold mb-2" style={{ color: "var(--brand)" }}>{roles.length}</div>
-              <p className="text-sm md:text-base muted">Specialized role tracks</p>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl md:text-5xl font-extrabold mb-2" style={{ color: "var(--brand)" }}>100%</div>
-              <p className="text-sm md:text-base muted">Source-grounded questions</p>
-            </div>
-          </div>
-        </div>
-      </section>
+            {/* Stat Tiles */}
+            <article className="bento-item bento-stat fade-up delay-2" style={{ background: "var(--gradient-brand)" }}>
+              <strong style={{ color: "#fff" }}>8</strong>
+              <span style={{ color: "rgba(255,255,255,0.85)" }}>Live questions per assessment</span>
+            </article>
 
-      {/* How the Platform Works */}
-      <section className="section section-soft">
-        <div className="shell shell-wide">
-          <div className="text-center mb-16 fade-up">
-            <div className="inline-block mb-4 px-3 py-1 rounded-full" style={{ background: "var(--brand-soft)", border: "1px solid var(--brand-line)" }}>
-              <span className="text-[12px] font-bold tracking-widest uppercase" style={{ color: "var(--brand)" }}>How the Platform Works</span>
-            </div>
-            <h2 className="font-bold tracking-tight mb-4" style={{ fontSize: "clamp(32px, 4.5vw, 48px)", color: "var(--ink)" }}>
-              Built for hiring teams that need <span className="gradient-text">reliable interview outcomes</span>
-            </h2>
-            <p className="text-[17px] muted" style={{ maxWidth: "700px", margin: "0 auto" }}>
-              Designed for client-facing delivery with a refined workflow, clear pacing, and consistent decision support.
-            </p>
-          </div>
+            <article className="bento-item bento-stat-duo fade-up delay-2">
+              <div className="bento-stat-duo-col">
+                <strong className="gradient-text">{roles.length}</strong>
+                <span className="muted">Specialized role tracks</span>
+              </div>
+              <div className="bento-stat-duo-divider" />
+              <div className="bento-stat-duo-col">
+                <strong className="gradient-text">100%</strong>
+                <span className="muted">Source-grounded questions</span>
+              </div>
+            </article>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Feature Cards */}
             {FEATURES.map((f, idx) => (
-              <div key={f.tag} className={`card p-8 fade-up delay-${Math.min(idx + 1, 4)}`} style={{ transition: "all 0.3s cubic-bezier(0.22, 1, 0.36, 1)" }}>
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl mb-5" style={{ background: "var(--brand-soft)", color: "var(--brand)" }}>
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+              <article key={f.tag} className={`bento-item bento-feature fade-up delay-${Math.min(idx + 1, 4)}`}>
+                <div className="inline-flex items-center justify-center w-11 h-11 rounded-xl mb-4" style={{ background: "var(--brand-soft)", border: "1px solid var(--brand-line)", color: "var(--brand)" }}>
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                     <path strokeLinecap="round" strokeLinejoin="round" d={f.icon} />
                   </svg>
                 </div>
-                <div className="text-[12px] font-bold tracking-widest uppercase mb-3" style={{ color: "var(--brand)" }}>{f.tag}</div>
-                <h3 className="text-[20px] font-bold mb-3" style={{ color: "var(--ink)", lineHeight: 1.3 }}>{f.title}</h3>
-                <p className="text-[15px] muted leading-relaxed">{f.desc}</p>
-              </div>
+                <div className="text-[11px] font-bold tracking-widest uppercase mb-2" style={{ color: "var(--brand)" }}>{f.tag}</div>
+                <h3 className="text-[18px] font-bold mb-2" style={{ color: "var(--ink)", lineHeight: 1.3 }}>{f.title}</h3>
+                <p className="text-[14px] muted leading-relaxed mb-4">{f.desc}</p>
+              </article>
             ))}
-          </div>
-        </div>
-      </section>
 
-      {/* Role Coverage */}
-      <section className="section">
-        <div className="shell shell-wide">
-          <div className="text-center mb-12 fade-up">
-            <div className="inline-block mb-4 px-3 py-1 rounded-full" style={{ background: "var(--brand-soft)", border: "1px solid var(--brand-line)" }}>
-              <span className="text-[12px] font-bold tracking-widest uppercase" style={{ color: "var(--brand)" }}>Role Coverage</span>
-            </div>
-            <h2 className="font-bold tracking-tight mb-3" style={{ fontSize: "clamp(32px, 4.5vw, 48px)", color: "var(--ink)" }}>
-              Curated tracks for modern data and engineering hiring
-            </h2>
-            <p className="text-[16px] muted" style={{ maxWidth: "640px", margin: "0 auto" }}>
-              Each track includes focused topic areas so assessments remain comparable across candidates.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Role Cards */}
             {roles.map((r) => (
-              <div key={r.slug} className="card card-hover p-7 fade-up">
-                <div className="text-[12px] font-bold tracking-widest uppercase mb-3" style={{ color: "var(--brand)" }}>
-                  {r.is_builtin ? "Built-in Track" : "Custom Track"}
-                </div>
-                <h3 className="text-[24px] font-bold mb-3" style={{ color: "var(--ink)" }}>{r.label}</h3>
-                <p className="text-[14px] muted leading-relaxed mb-5">{r.description}</p>
-                <div className="flex flex-wrap gap-2 mb-6">
+              <article key={r.slug} className="bento-item bento-role bento-role-soft fade-up">
+                <div className="eyebrow mb-2">{r.is_builtin ? "Built-in Track" : "Custom Track"}</div>
+                <h3 className="text-[20px] font-bold mb-2">{r.label}</h3>
+                <p className="muted text-[13px] leading-relaxed mb-4">{r.description}</p>
+                <div className="flex flex-wrap gap-1.5 mb-4">
                   {r.topics.map((topic) => <span key={topic} className="badge">{topic}</span>)}
                 </div>
                 <Link to="/interview/setup" className="btn btn-subtle btn-sm mt-auto">Launch this track →</Link>
-              </div>
+              </article>
             ))}
+
+            {/* About Banner */}
+            <div className="bento-item bento-about fade-up">
+              <div className="bento-about-text">
+                <div className="eyebrow mb-3" style={{ color: "rgba(255,255,255,0.75)" }}>About Us</div>
+                <h2 className="font-bold tracking-tight mb-3" style={{ fontSize: "clamp(24px, 3.2vw, 34px)", color: "#fff" }}>
+                  Unbiased, skills-first technical hiring — built into the interview itself.
+                </h2>
+                <p className="text-[15px] leading-relaxed" style={{ color: "rgba(255,255,255,0.78)" }}>
+                  CritiQ automates the technical interview with adaptive, source-grounded AI — uncovering real talent while cutting scheduling bottlenecks and first-round bias.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="section section-soft">
+      <section className="section-soft" style={{ paddingBlock: "clamp(2.4rem, 5vw, 4rem)" }}>
         <div className="shell text-center">
-          <h2 className="font-bold tracking-tight mb-4 fade-up" style={{ fontSize: "clamp(28px, 4.5vw, 44px)", color: "var(--ink)" }}>
+          <h2 className="font-bold tracking-tight mb-4" style={{ fontSize: "clamp(28px, 4.5vw, 44px)", color: "var(--ink)" }}>
             Ready to deliver a stronger hiring experience?
           </h2>
-          <p className="text-[17px] muted mb-8 fade-up delay-1" style={{ maxWidth: "640px", margin: "0 auto 2rem" }}>
+          <p className="text-[16px] muted mb-7" style={{ maxWidth: "600px", margin: "0 auto 1.8rem" }}>
             Start your next candidate interview in minutes and get a scored report the moment it's done.
           </p>
-          <div className="flex items-center justify-center gap-3 flex-wrap fade-up delay-2">
+          <div className="flex items-center justify-center gap-3 flex-wrap">
             <Link to="/interview/setup" className="btn btn-primary">Start interview now</Link>
             <Link to="/sessions" className="btn btn-secondary">View existing sessions</Link>
           </div>
