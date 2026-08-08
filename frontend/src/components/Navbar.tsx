@@ -16,11 +16,6 @@ export default function Navbar() {
   }, []);
 
   const handleLogout = () => {
-    // Navigate away from any ProtectedRoute-wrapped page *before* clearing auth
-    // state. Otherwise, if you're on a protected page, clearing auth first causes
-    // that still-mounted route to re-render and redirect itself to /login before
-    // this navigate("/") call resolves — a race ProtectedRoute usually wins,
-    // landing you on the login page instead of home.
     navigate("/");
     logout();
     setOpen(false);
@@ -32,9 +27,12 @@ export default function Navbar() {
       <div className="shell shell-wide site-nav-inner">
         <Brand />
 
-        <nav className="hidden md:flex items-center gap-1">
+        {/* desktop nav */}
+        <nav className="hidden md:flex items-center gap-6">
           {isAuthenticated && (
-            <Link to="/sessions" className="nav-link">My Sessions</Link>
+            <Link to="/sessions" className="nav-link">
+              My Sessions
+            </Link>
           )}
         </nav>
 
@@ -42,24 +40,49 @@ export default function Navbar() {
           <span className="nav-divider" />
           {isAuthenticated ? (
             <>
-              <span className="nav-link" style={{ color: "var(--muted)" }}>{email}</span>
-              <button onClick={handleLogout} className="nav-link nav-login" style={{ background: "none", border: "none", cursor: "pointer" }}>
+              <span
+                className="text-[13px] font-medium"
+                style={{
+                  color: "var(--muted)",
+                  fontFamily: "'Inter', sans-serif",
+                  maxWidth: 220,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {email}
+              </span>
+              <button
+                onClick={handleLogout}
+                className="nav-link nav-login"
+                style={{ color: "var(--muted)" }}
+              >
                 Log out
               </button>
             </>
           ) : (
             <Link to="/login" className="nav-link nav-login">
-              Log In
+              Log in
             </Link>
           )}
-          <Link to="/interview/setup" className="btn btn-primary btn-sm">
+          <Link
+            to="/interview/setup"
+            className="btn btn-primary btn-sm"
+            style={{ borderRadius: "999px", paddingInline: "1.2rem" }}
+          >
             Start a session
           </Link>
         </div>
 
+        {/* mobile hamburger */}
         <button
-          className="md:hidden p-2 rounded-lg"
-          style={{ color: "var(--muted)", border: "1px solid var(--border)" }}
+          className="md:hidden flex items-center justify-center w-9 h-9 rounded-lg"
+          style={{
+            color: "var(--ink-2)",
+            background: "var(--surface-alt)",
+            border: "1px solid var(--border)",
+          }}
           aria-label="Toggle menu"
           onClick={() => setOpen((o) => !o)}
         >
@@ -72,29 +95,51 @@ export default function Navbar() {
         </button>
       </div>
 
+      {/* mobile menu */}
       {open && (
-        <div className="md:hidden px-6 pb-5 pt-3 flex flex-col gap-1 fade-in" style={{ borderTop: "1px solid #f3f4f6", background: "#fff" }}>
+        <div
+          className="md:hidden px-5 pb-5 pt-3 flex flex-col gap-1 fade-in"
+          style={{
+            borderTop: "1px solid var(--border)",
+            background: "var(--surface)",
+          }}
+        >
           {isAuthenticated && (
-            <Link to="/sessions" className="text-[15px] py-3 px-3 rounded-lg font-medium" style={{ color: "var(--muted)" }} onClick={() => setOpen(false)}>
+            <Link
+              to="/sessions"
+              className="text-[15px] py-3 px-3 rounded-xl font-medium"
+              style={{ color: "var(--ink-2)", fontFamily: "'Inter', sans-serif" }}
+              onClick={() => setOpen(false)}
+            >
               My Sessions
             </Link>
           )}
 
           {isAuthenticated ? (
             <>
-              <span className="text-[13px] py-2 px-3" style={{ color: "var(--cyan)" }}>{email}</span>
-              <button onClick={handleLogout} className="btn btn-secondary mt-2 text-[14px] py-3">
+              <span
+                className="text-[13px] py-2 px-3"
+                style={{ color: "var(--muted)", fontFamily: "'Inter', sans-serif" }}
+              >
+                {email}
+              </span>
+              <button onClick={handleLogout} className="btn btn-secondary mt-2 py-3">
                 Log out
               </button>
             </>
           ) : (
-            <Link to="/login" className="btn btn-secondary mt-2 text-[14px] py-3" onClick={() => setOpen(false)}>
+            <Link
+              to="/login"
+              className="btn btn-secondary mt-2 py-3"
+              onClick={() => setOpen(false)}
+            >
               Sign in
             </Link>
           )}
           <Link
             to="/interview/setup"
-            className="btn btn-primary mt-3 text-[14px] py-3"
+            className="btn btn-primary mt-2 py-3"
+            style={{ borderRadius: "999px" }}
             onClick={() => setOpen(false)}
           >
             Start a session

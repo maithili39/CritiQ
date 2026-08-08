@@ -5,8 +5,6 @@ import { useInterview } from "@/context/InterviewContext";
 import Navbar from "@/components/Navbar";
 import SiteFooter from "@/components/SiteFooter";
 
-
-
 const HOW = [
   { n: "01", title: "Resume parsed",       desc: "We extract your skills, technologies, and experience level automatically." },
   { n: "02", title: "Questions generated", desc: "Questions are created from role-specific knowledge, personalised to your background." },
@@ -30,14 +28,10 @@ export default function SetupPage() {
   const [created, setCreated] = useState<{ sessionId: string; inviteUrl: string } | null>(null);
   const [inviteStatus, setInviteStatus] = useState<"idle" | "sending" | "sent" | "copied">("idle");
 
-  // Fetch available roles (built-in + custom) on mount
   useEffect(() => {
     getRoles()
       .then((res) => setRoles(res.roles))
       .catch(() => {
-        // Surface the failure — silently substituting a stale hardcoded list hides
-        // custom roles and risks a misleading 400 if the user submits with a role
-        // the backend no longer recognises. Show an error and let them retry.
         setError("Failed to load available roles. Please refresh the page and try again.");
       })
       .finally(() => setRolesLoading(false));
@@ -53,7 +47,10 @@ export default function SetupPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !selectedRole || !file) { setError("Please fill in all fields and upload your resume."); return; }
+    if (!name || !selectedRole || !file) {
+      setError("Please fill in all fields and upload your resume.");
+      return;
+    }
     setError("");
     setLoading(true);
     try {
@@ -62,7 +59,6 @@ export default function SetupPage() {
       fd.append("role", selectedRole);
       if (email) fd.append("candidate_email", email);
       fd.append("resume", file);
-
       const result = await createSession(fd);
       setCandidateName(name);
       setRole(selectedRole);
@@ -111,44 +107,88 @@ export default function SetupPage() {
     }
   };
 
+  /* ── SESSION CREATED STATE ── */
   if (created) {
     return (
       <div className="page-stack">
         <Navbar />
-        <main className="section">
-          <div className="shell flex items-center justify-center">
-            <div className="card p-8 max-w-lg w-full fade-up">
-              <div className="eyebrow mb-3">Session created</div>
-              <h1 className="text-[26px] font-bold tracking-tight mb-2">Ready to invite {name}</h1>
-              <p className="muted text-[14px] leading-relaxed mb-6">
-                Send this link to the candidate to let them complete the interview on their own
-                time — no account required. Or preview the interview yourself first.
-              </p>
+        <main
+          className="section flex-1 flex items-center justify-center"
+          style={{ background: "var(--bg-mid)" }}
+        >
+          <div
+            className="card p-8 w-full fade-up"
+            style={{ maxWidth: "520px", borderColor: "rgba(245,158,11,0.2)" }}
+          >
+            {/* success icon */}
+            <div
+              className="w-12 h-12 rounded-2xl flex items-center justify-center mb-5"
+              style={{ background: "rgba(52,211,153,0.12)", border: "1px solid rgba(52,211,153,0.3)" }}
+            >
+              <svg className="w-6 h-6" style={{ color: "var(--success)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
 
+            <div
+              className="eyebrow mb-2"
+              style={{ background: "none", border: "none", padding: 0, color: "var(--success)" }}
+            >
+              Session created
+            </div>
+            <h1
+              className="font-bold tracking-tight mb-2"
+              style={{ fontSize: "26px", fontFamily: "'Outfit', sans-serif", color: "var(--ink)" }}
+            >
+              Ready to invite {name}
+            </h1>
+            <p style={{ fontSize: "14px", color: "var(--muted)", lineHeight: 1.7, marginBottom: "1.75rem", fontFamily: "'Inter', sans-serif" }}>
+              Send this link to the candidate — no account required. Or preview the interview yourself first.
+            </p>
+
+            <div className="mb-5">
               <label className="field-label">Invite link</label>
-              <div className="flex gap-2 mb-4">
-                <input readOnly value={created.inviteUrl} className="input px-3 py-2.5 text-[13px] flex-1" />
-                <button onClick={handleCopyLink} className="btn btn-secondary btn-sm whitespace-nowrap">
-                  {inviteStatus === "copied" ? "Copied!" : "Copy"}
+              <div className="flex gap-2">
+                <input
+                  readOnly
+                  value={created.inviteUrl}
+                  className="input px-3 py-2.5 flex-1"
+                  style={{ fontSize: "13px" }}
+                />
+                <button
+                  onClick={handleCopyLink}
+                  className="btn btn-secondary btn-sm whitespace-nowrap"
+                >
+                  {inviteStatus === "copied" ? "✓ Copied!" : "Copy"}
                 </button>
               </div>
-
-              {email && (
-                <button
-                  onClick={handleSendInvite}
-                  disabled={inviteStatus === "sending" || inviteStatus === "sent"}
-                  className="btn btn-primary w-full py-3 mb-3"
-                >
-                  {inviteStatus === "sending" ? "Sending..." : inviteStatus === "sent" ? `Sent to ${email}` : `Email invite to ${email}`}
-                </button>
-              )}
-
-              {error ? <div className="alert-error mb-3">{error}</div> : null}
-
-              <button onClick={handlePreview} disabled={loading} className="btn btn-secondary w-full py-3">
-                {loading ? "Starting..." : "Preview this interview myself"}
-              </button>
             </div>
+
+            {email && (
+              <button
+                onClick={handleSendInvite}
+                disabled={inviteStatus === "sending" || inviteStatus === "sent"}
+                className="btn btn-primary w-full py-3 mb-3"
+                style={{ borderRadius: "999px" }}
+              >
+                {inviteStatus === "sending"
+                  ? (<><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full spin" />Sending…</>)
+                  : inviteStatus === "sent"
+                  ? `✓ Sent to ${email}`
+                  : `Email invite to ${email}`}
+              </button>
+            )}
+
+            {error ? <div className="alert-error mb-3">{error}</div> : null}
+
+            <button
+              onClick={handlePreview}
+              disabled={loading}
+              className="btn btn-secondary w-full py-3"
+              style={{ borderRadius: "999px" }}
+            >
+              {loading ? "Starting…" : "Preview this interview myself →"}
+            </button>
           </div>
         </main>
         <SiteFooter />
@@ -156,39 +196,98 @@ export default function SetupPage() {
     );
   }
 
+  /* ── SETUP FORM ── */
   return (
     <div className="page-stack">
       <Navbar />
 
-      <main className="section">
-        <div className="shell shell-wide grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr] gap-6">
-          <section className="card p-7 fade-up">
-            <div className="mb-6">
-              <div className="eyebrow mb-3">Step 1 of 2</div>
-              <h1 className="text-[34px] font-bold tracking-tight mb-2" style={{ lineHeight: 1.08 }}>Set up the candidate interview</h1>
-              <p className="muted text-[15px]">Complete the details below to generate a structured interview session.</p>
+      <main className="section flex-1" style={{ background: "var(--bg-mid)" }}>
+        <div className="shell shell-wide grid grid-cols-1 lg:grid-cols-[1.3fr_0.7fr] gap-6">
+
+          {/* ── MAIN FORM CARD ── */}
+          <section className="card p-8 fade-up">
+            {/* progress bar */}
+            <div className="setup-step-bar mb-7">
+              <div className="setup-step-dot active" />
+              <div className="setup-step-dot" />
+              <span
+                style={{
+                  marginLeft: "0.4rem",
+                  fontSize: "12px",
+                  color: "var(--muted)",
+                  fontFamily: "'Inter', sans-serif",
+                }}
+              >
+                Step 1 of 2
+              </span>
             </div>
 
-            <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+            <div className="mb-7">
+              <div
+                className="eyebrow mb-3"
+                style={{ background: "none", border: "none", padding: 0 }}
+              >
+                Interview Setup
+              </div>
+              <h1
+                className="font-bold tracking-tight mb-2"
+                style={{
+                  fontSize: "clamp(26px, 3.5vw, 34px)",
+                  fontFamily: "'Outfit', sans-serif",
+                  color: "var(--ink)",
+                  letterSpacing: "-0.02em",
+                  lineHeight: 1.1,
+                }}
+              >
+                Set up the candidate interview
+              </h1>
+              <p style={{ fontSize: "15px", color: "var(--muted)", fontFamily: "'Inter', sans-serif" }}>
+                Complete the details below to generate a structured interview session.
+              </p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+              {/* name */}
               <div>
-                <label className="field-label">Candidate full name</label>
-                <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Jane Smith" className="input px-4 py-2.5" />
+                <label className="field-label" htmlFor="setup-name">Candidate full name</label>
+                <input
+                  id="setup-name"
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Jane Smith"
+                  className="input px-4 py-3"
+                />
               </div>
 
+              {/* email */}
               <div>
-                <label className="field-label">Candidate email <span className="muted text-[12px]">optional</span></label>
-                <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="jane@company.com" className="input px-4 py-2.5" />
+                <label className="field-label" htmlFor="setup-email">
+                  Candidate email
+                  <span style={{ color: "var(--muted)", fontWeight: 400, marginLeft: "0.4rem", fontSize: "12px" }}>
+                    optional
+                  </span>
+                </label>
+                <input
+                  id="setup-email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="jane@company.com"
+                  className="input px-4 py-3"
+                />
               </div>
 
+              {/* role selection */}
               <div>
-                <label className="field-label mb-2">Target role</label>
+                <label className="field-label">Target role</label>
                 {rolesLoading ? (
-                  <div className="flex items-center gap-2 py-4 muted text-[14px]">
+                  <div className="flex items-center gap-2 py-5" style={{ color: "var(--muted)", fontSize: "14px", fontFamily: "'Inter', sans-serif" }}>
                     <span className="w-4 h-4 border-2 border-t-transparent rounded-full spin" style={{ borderColor: "var(--brand)" }} />
                     Loading roles…
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 gap-2.5">
+                  <div className="grid grid-cols-1 gap-3">
                     {roles.map((r) => {
                       const active = selectedRole === r.slug;
                       return (
@@ -196,28 +295,50 @@ export default function SetupPage() {
                           key={r.slug}
                           type="button"
                           onClick={() => setSelectedRole(r.slug)}
-                          className="text-left p-4 rounded-xl transition-all"
+                          className="text-left rounded-xl transition-all"
                           style={{
-                            border: active ? "1.5px solid var(--brand)" : "1.5px solid var(--border)",
-                            background: active ? "var(--brand-soft)" : "#fff",
+                            padding: "1rem 1.25rem",
+                            border: active ? "1.5px solid var(--brand)" : "1.5px solid var(--border-strong)",
+                            background: active ? "rgba(245,158,11,0.07)" : "var(--surface-alt)",
                             boxShadow: active ? "var(--ring)" : "none",
                           }}
                         >
-                          <div className="flex items-center gap-2 mb-1">
-                            <div className="text-[15px] font-semibold">{r.label}</div>
-                            {!r.is_builtin && (
-                              <span
-                                className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded"
-                                style={{ background: "var(--accent-soft)", color: "var(--accent)" }}
+                          <div className="flex items-center justify-between mb-1.5">
+                            <div className="flex items-center gap-2">
+                              <div
+                                className="font-semibold"
+                                style={{ fontSize: "15px", color: active ? "var(--ink)" : "var(--ink-2)", fontFamily: "'Inter', sans-serif" }}
                               >
-                                Custom
-                              </span>
+                                {r.label}
+                              </div>
+                              {!r.is_builtin && (
+                                <span
+                                  className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded"
+                                  style={{ background: "var(--accent-soft)", color: "var(--accent)" }}
+                                >
+                                  Custom
+                                </span>
+                              )}
+                            </div>
+                            {active && (
+                              <div
+                                className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
+                                style={{ background: "var(--brand)" }}
+                              >
+                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="#fff" strokeWidth={3}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                </svg>
+                              </div>
                             )}
                           </div>
-                          <p className="text-[13px] muted">{r.description}</p>
+                          <p style={{ fontSize: "13px", color: "var(--muted)", marginBottom: r.topics.length > 0 ? "0.75rem" : 0, fontFamily: "'Inter', sans-serif" }}>
+                            {r.description}
+                          </p>
                           {r.topics.length > 0 && (
-                            <div className="flex flex-wrap gap-1.5 mt-3">
-                              {r.topics.map((t) => <span key={t} className="badge">{t}</span>)}
+                            <div className="flex flex-wrap gap-1.5">
+                              {r.topics.map((t) => (
+                                <span key={t} className="badge">{t}</span>
+                              ))}
                             </div>
                           )}
                         </button>
@@ -227,17 +348,23 @@ export default function SetupPage() {
                 )}
               </div>
 
+              {/* resume upload */}
               <div>
                 <label className="field-label">Resume file</label>
                 <div
-                  onDragOver={e => { e.preventDefault(); setDragging(true); }}
+                  onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
                   onDragLeave={() => setDragging(false)}
                   onDrop={onDrop}
                   onClick={() => document.getElementById("resume-input")?.click()}
-                  className="p-7 rounded-xl cursor-pointer"
+                  className="rounded-2xl cursor-pointer transition-all"
                   style={{
-                    border: `1.8px dashed ${dragging || file ? "var(--brand)" : "var(--border-strong)"}`,
-                    background: dragging || file ? "var(--brand-soft)" : "var(--surface-alt)",
+                    padding: "2.5rem 2rem",
+                    border: `1.8px dashed ${dragging ? "var(--brand)" : file ? "rgba(52,211,153,0.5)" : "var(--border-strong)"}`,
+                    background: dragging
+                      ? "rgba(245,158,11,0.05)"
+                      : file
+                      ? "rgba(52,211,153,0.05)"
+                      : "var(--surface-alt)",
                     textAlign: "center",
                   }}
                 >
@@ -246,17 +373,37 @@ export default function SetupPage() {
                     type="file"
                     accept=".pdf"
                     className="hidden"
-                    onChange={e => { const f = e.target.files?.[0]; if (f) setFile(f); }}
+                    onChange={(e) => { const f = e.target.files?.[0]; if (f) setFile(f); }}
                   />
                   {file ? (
                     <div>
-                      <div className="text-[15px] font-semibold mb-1">{file.name}</div>
-                      <div className="muted text-[13px]">{(file.size / 1024).toFixed(0)} KB selected</div>
+                      <div
+                        className="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-3"
+                        style={{ background: "rgba(52,211,153,0.12)", border: "1px solid rgba(52,211,153,0.3)" }}
+                      >
+                        <svg className="w-5 h-5" style={{ color: "var(--success)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                      <div className="font-semibold mb-1" style={{ color: "var(--ink)", fontFamily: "'Inter', sans-serif" }}>{file.name}</div>
+                      <div style={{ color: "var(--muted)", fontSize: "13px", fontFamily: "'Inter', sans-serif" }}>{(file.size / 1024).toFixed(0)} KB · PDF</div>
                     </div>
                   ) : (
                     <div>
-                      <div className="text-[15px] font-semibold">Drop PDF here or click to browse</div>
-                      <div className="muted text-[13px] mt-1">Maximum upload size: 5 MB</div>
+                      <div
+                        className="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-3"
+                        style={{ background: "var(--brand-soft)", border: "1px solid var(--brand-line)" }}
+                      >
+                        <svg className="w-5 h-5" style={{ color: "var(--brand)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                        </svg>
+                      </div>
+                      <div className="font-semibold mb-1" style={{ color: "var(--ink)", fontFamily: "'Inter', sans-serif" }}>
+                        Drop PDF here or click to browse
+                      </div>
+                      <div style={{ color: "var(--muted)", fontSize: "13px", fontFamily: "'Inter', sans-serif" }}>
+                        Maximum upload size: 5 MB
+                      </div>
                     </div>
                   )}
                 </div>
@@ -264,36 +411,73 @@ export default function SetupPage() {
 
               {error ? <div className="alert-error">{error}</div> : null}
 
-              <button type="submit" disabled={loading} className="btn btn-primary py-3.5 justify-center">
+              <button
+                id="create-session-btn"
+                type="submit"
+                disabled={loading}
+                className="btn btn-primary py-3.5 justify-center"
+                style={{ borderRadius: "999px", fontSize: "15px" }}
+              >
                 {loading ? (
                   <>
-                    <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full spin" />
-                    Reading candidate profile...
+                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full spin" />
+                    Reading candidate profile…
                   </>
-                ) : "Create session"}
+                ) : "Create session →"}
               </button>
             </form>
           </section>
 
-          <aside className="card p-6 fade-up delay-1" style={{ background: "linear-gradient(180deg, var(--surface) 0%, var(--surface-alt) 100%)" }}>
-            <h3 className="text-[20px] font-bold mb-5">Interview flow</h3>
-            <div className="flex flex-col gap-4">
+          {/* ── RIGHT SIDEBAR ── */}
+          <aside
+            className="card p-6 fade-up delay-1 self-start"
+            style={{ position: "sticky", top: "88px" }}
+          >
+            <h3
+              className="font-bold mb-5"
+              style={{ fontSize: "18px", fontFamily: "'Outfit', sans-serif", color: "var(--ink)" }}
+            >
+              Interview flow
+            </h3>
+            <div className="flex flex-col gap-3">
               {HOW.map((item) => (
-                <div key={item.n} className="p-4 rounded-xl flex gap-3" style={{ border: "1px solid var(--border)", background: "var(--surface)" }}>
-                  <div
-                    className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-[12px] font-extrabold"
-                    style={{ background: "var(--gradient-brand)", color: "#fff" }}
-                  >
-                    {item.n.replace(/^0/, "")}
-                  </div>
+                <div key={item.n} className="setup-flow-item">
+                  <div className="setup-flow-num">{parseInt(item.n)}</div>
                   <div>
-                    <div className="text-[14px] font-semibold mb-1">{item.title}</div>
-                    <p className="text-[13px] muted leading-relaxed">{item.desc}</p>
+                    <div
+                      className="font-semibold mb-1"
+                      style={{ fontSize: "14px", color: "var(--ink)", fontFamily: "'Inter', sans-serif" }}
+                    >
+                      {item.title}
+                    </div>
+                    <p style={{ fontSize: "13px", color: "var(--muted)", lineHeight: 1.6, fontFamily: "'Inter', sans-serif" }}>
+                      {item.desc}
+                    </p>
                   </div>
                 </div>
               ))}
             </div>
+
+            {/* tip */}
+            <div
+              className="mt-5 p-4 rounded-xl"
+              style={{
+                background: "var(--brand-soft)",
+                border: "1px solid var(--brand-line)",
+              }}
+            >
+              <div
+                className="font-semibold mb-1"
+                style={{ fontSize: "13px", color: "var(--brand)", fontFamily: "'Inter', sans-serif" }}
+              >
+                💡 Tip
+              </div>
+              <p style={{ fontSize: "12px", color: "var(--muted)", lineHeight: 1.6, fontFamily: "'Inter', sans-serif" }}>
+                Adding the candidate's email lets you send them a direct invite link with one click after setup.
+              </p>
+            </div>
           </aside>
+
         </div>
       </main>
 
