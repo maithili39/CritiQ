@@ -31,7 +31,7 @@ function CalibrationBanner({ cal }: { cal: Calibration }) {
     >
       <div className="flex items-center justify-between mb-5">
         <div className="eyebrow" style={{ background: "none", border: "none", padding: 0 }}>
-          ✦ Screening Calibration
+          <span>✦</span> Screening Calibration
         </div>
         <span
           className="badge"
@@ -210,7 +210,7 @@ export default function MySessionsPage() {
                 Start your first candidate interview to see it appear here.
               </p>
               <Link to="/interview/setup" className="btn btn-primary" style={{ borderRadius: "999px" }}>
-                Start first session
+                Start session
               </Link>
             </div>
           ) : null}
@@ -262,7 +262,7 @@ export default function MySessionsPage() {
                     {/* right — score + status */}
                     <div className="flex items-center gap-4">
                       {s.overall_score != null ? (
-                        <div
+                        <span
                           className="font-bold"
                           style={{
                             fontSize: "18px",
@@ -270,9 +270,8 @@ export default function MySessionsPage() {
                             fontFamily: "'Outfit', sans-serif",
                           }}
                         >
-                          {s.overall_score.toFixed(1)}
-                          <span style={{ fontSize: "12px", color: "var(--muted)", fontWeight: 400 }}>/10</span>
-                        </div>
+                          {`${s.overall_score.toFixed(1)}/10`}
+                        </span>
                       ) : null}
                       <span
                         className="badge"
